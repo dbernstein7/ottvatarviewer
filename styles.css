@@ -203,7 +203,7 @@ header p {
 
 .sidebar {
     position: absolute;
-    bottom: 100px;
+    bottom: 0;
     left: 0;
     right: 0;
     width: 100%;
@@ -871,6 +871,7 @@ header p {
         overflow-y: hidden;
         -webkit-overflow-scrolling: touch;
         flex-wrap: nowrap;
+        margin-bottom: 50px;
     }
 
     .panel {
@@ -947,6 +948,7 @@ header p {
         overflow-y: hidden;
         -webkit-overflow-scrolling: touch;
         flex-wrap: nowrap;
+        margin-bottom: 50px;
     }
 
     .panel {
