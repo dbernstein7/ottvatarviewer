@@ -914,12 +914,13 @@ header p {
     }
 
     .randomize-btn {
-        bottom: 1rem !important;
+        bottom: 310px !important;
         left: 50% !important;
         right: auto !important;
         transform: translateX(-50%) !important;
         padding: 0.875rem 1.5rem;
         font-size: 1rem;
+        z-index: 3000 !important;
     }
 }
 
@@ -985,12 +986,13 @@ header p {
     }
 
     .randomize-btn {
-        bottom: 1rem !important;
+        bottom: 260px !important;
         left: 50% !important;
         right: auto !important;
         transform: translateX(-50%) !important;
         padding: 0.75rem 1.25rem;
         font-size: 0.9rem;
+        z-index: 3000 !important;
     }
 }
 
