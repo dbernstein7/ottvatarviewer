@@ -179,7 +179,7 @@ class AvatarBuilder {
         if (window.innerWidth <= 768) {
             this.controls.target.set(0, -0.6, 0);  // Mobile: lower target
         } else {
-            this.controls.target.set(0, 0, 0);  // Desktop: Center target
+            this.controls.target.set(0, -0.4, 0);  // Desktop: target at -0.4
         }
         
         // Enable panning with middle mouse button (scroll wheel click)
@@ -752,7 +752,7 @@ class AvatarBuilder {
                 if (window.innerWidth <= 768) {
                     this.controls.target.set(0, -0.6, 0);  // Mobile: lower target
                 } else {
-                    this.controls.target.set(0, 0, 0);  // Desktop: center target
+                    this.controls.target.set(0, -0.4, 0);  // Desktop: target at -0.4
                 }
                 this.currentZoomLevel = 2;  // Start slightly zoomed out (level +2)
                 this.applyZoomLevel();  // Apply the zoom level
@@ -836,7 +836,7 @@ class AvatarBuilder {
             if (window.innerWidth <= 768) {
                 this.controls.target.set(0, -0.6, 0);  // Mobile: lower target
             } else {
-                this.controls.target.set(0, 0, 0);  // Desktop: center target
+                this.controls.target.set(0, -0.4, 0);  // Desktop: target at -0.4
             }
             this.currentZoomLevel = 2;  // Start slightly zoomed out (level +2)
             this.applyZoomLevel();  // Apply the zoom level
@@ -2010,7 +2010,7 @@ class AvatarBuilder {
             // Desktop: use higher position
             this.camera.position.set(0, 0.2, 2.05);
             if (this.controls) {
-                this.controls.target.set(0, 0, 0);
+                this.controls.target.set(0, -0.4, 0);
             }
         }
     }
