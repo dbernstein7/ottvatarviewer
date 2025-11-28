@@ -910,7 +910,8 @@ header p {
     }
 
     .fur-btn {
-        min-height: 80px;
+        min-height: 0;
+        aspect-ratio: 1;
     }
 
     .randomize-btn {
@@ -979,7 +980,8 @@ header p {
     }
 
     .fur-btn {
-        min-height: 70px;
+        min-height: 0;
+        aspect-ratio: 1;
     }
 
     .randomize-btn {
