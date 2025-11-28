@@ -166,7 +166,9 @@ class AvatarBuilder {
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.enableDamping = true;
         this.controls.dampingFactor = 0.05;
-        this.controls.enableZoom = false;  // Disable default zoom, we'll handle it manually
+        // Enable zoom for touch devices (pinch), but we'll handle mouse wheel manually
+        this.controls.enableZoom = true;  // Enable zoom for touch devices
+        this.controls.enableDolly = true;  // Enable pinch zoom (dolly)
         this.controls.target.set(0, -0.2, 0);  // Lower target to center on otter body
         
         // Enable panning with middle mouse button (scroll wheel click)
@@ -175,11 +177,22 @@ class AvatarBuilder {
             MIDDLE: THREE.MOUSE.PAN,  // Pan when middle mouse button is held
             RIGHT: THREE.MOUSE.PAN
         };
+        
+        // Touch controls configuration
+        // Available options:
+        // THREE.TOUCH.ROTATE - Single finger rotates
+        // THREE.TOUCH.DOLLY - Two fingers zoom (pinch)
+        // THREE.TOUCH.PAN - Two fingers pan
+        // THREE.TOUCH.DOLLY_PAN - Two fingers zoom + pan (default)
+        // THREE.TOUCH.DOLLY_ROTATE - Two fingers zoom + rotate
         this.controls.touches = {
-            ONE: THREE.TOUCH.ROTATE,
-            TWO: THREE.TOUCH.DOLLY_PAN  // Enable pinch zoom
+            ONE: THREE.TOUCH.ROTATE,      // Single finger = rotate camera
+            TWO: THREE.TOUCH.DOLLY_PAN    // Two fingers = pinch zoom + pan
         };
-        this.controls.enableDolly = true;  // Enable pinch zoom
+        
+        // Disable mouse wheel zoom (we handle it with custom discrete levels)
+        this.controls.enableDamping = true;
+        this.controls.dampingFactor = 0.05;
         
         // Setup custom zoom with discrete levels
         this.setupDiscreteZoom();
@@ -256,9 +269,11 @@ class AvatarBuilder {
         ];
 
         // Add wheel event listener to canvas
+        // This overrides the default OrbitControls wheel zoom with our custom discrete levels
         const canvas = this.renderer.domElement;
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
+            e.stopPropagation();  // Prevent OrbitControls from handling it
             
             // Determine zoom direction
             const delta = e.deltaY > 0 ? 1 : -1;
