@@ -757,6 +757,10 @@ header p {
     padding: 1.25rem;
 }
 
+.fur-gallery .fur-btn {
+    margin: 0;
+}
+
 .fur-gallery::-webkit-scrollbar {
     width: 6px;
 }
@@ -799,6 +803,7 @@ header p {
     max-height: 90px;
     object-fit: contain;
     display: block;
+    padding: 2px;
 }
 
 /* Fallback styling for text-only buttons */
