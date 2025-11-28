@@ -775,7 +775,7 @@ header p {
 }
 
 .fur-btn {
-    padding: 0.25rem;
+    padding: 0.125rem;
     background: rgba(10, 10, 10, 0.8);
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -801,11 +801,11 @@ header p {
 .fur-btn img {
     width: auto;
     height: auto;
-    max-width: calc(100% - 8px);
-    max-height: calc(100% - 8px);
+    max-width: calc(100% - 4px);
+    max-height: calc(100% - 4px);
     object-fit: contain;
     display: block;
-    padding: 4px;
+    padding: 2px;
     box-sizing: border-box;
 }
 
