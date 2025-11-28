@@ -749,12 +749,12 @@ header p {
 
 .fur-gallery {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 1.25rem;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.5rem;
     max-height: 250px;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 1rem;
+    padding: 1.25rem;
 }
 
 .fur-gallery::-webkit-scrollbar {
