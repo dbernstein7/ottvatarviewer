@@ -910,7 +910,7 @@ header p {
     }
 
     .fur-btn {
-        min-height: 0;
+        min-height: 80px;
         aspect-ratio: 1;
     }
 
@@ -980,7 +980,7 @@ header p {
     }
 
     .fur-btn {
-        min-height: 0;
+        min-height: 70px;
         aspect-ratio: 1;
     }
 
