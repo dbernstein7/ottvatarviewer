@@ -906,7 +906,7 @@ header p {
     .fur-gallery {
         grid-template-columns: repeat(4, 1fr);
         gap: 1rem;
-        padding: 1rem 1rem 4rem 1rem;
+        padding: 1rem 1rem 6rem 1rem;
     }
 
     .fur-btn {
@@ -976,7 +976,7 @@ header p {
     .fur-gallery {
         grid-template-columns: repeat(3, 1fr);
         gap: 0.75rem;
-        padding: 0.75rem 0.75rem 4rem 0.75rem;
+        padding: 0.75rem 0.75rem 6rem 0.75rem;
     }
 
     .fur-btn {
