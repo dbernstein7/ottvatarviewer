@@ -156,7 +156,7 @@ class AvatarBuilder {
         if (window.innerWidth <= 768) {
             this.camera.position.set(0, -0.8, 24.1);  // Mobile: zoomed out 2x + 20 more, lowered
         } else {
-            this.camera.position.set(0, 0.2, 2.05);  // Desktop: Higher camera position
+            this.camera.position.set(0, 0.2, 3.5);  // Desktop: Higher camera position, moved back
         }
 
         // Renderer
@@ -2007,8 +2007,8 @@ class AvatarBuilder {
                 this.controls.target.set(0, -0.6, 0);
             }
         } else {
-            // Desktop: use higher position
-            this.camera.position.set(0, 0.2, 2.05);
+            // Desktop: use higher position, moved back
+            this.camera.position.set(0, 0.2, 3.5);
             if (this.controls) {
                 this.controls.target.set(0, -0.4, 0);
             }
