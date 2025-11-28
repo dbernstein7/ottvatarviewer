@@ -152,7 +152,7 @@ class AvatarBuilder {
             0.1,
             1000
         );
-        this.camera.position.set(0, 0, 2.05);
+        this.camera.position.set(0, -0.3, 2.05);  // Lower camera to show full otter
 
         // Renderer
         const container = document.getElementById('canvas-container');
@@ -167,7 +167,7 @@ class AvatarBuilder {
         this.controls.enableDamping = true;
         this.controls.dampingFactor = 0.05;
         this.controls.enableZoom = false;  // Disable default zoom, we'll handle it manually
-        this.controls.target.set(0, 0, 0);  // Set target to origin (center of scene)
+        this.controls.target.set(0, -0.2, 0);  // Lower target to center on otter body
         
         // Enable panning with middle mouse button (scroll wheel click)
         this.controls.mouseButtons = {
@@ -721,7 +721,7 @@ class AvatarBuilder {
                 // First load - center and scale normally
                 this.centerModel();
                 // Reset camera and controls to center on the model
-                this.controls.target.set(0, 0, 0);
+                this.controls.target.set(0, -0.2, 0);
                 this.currentZoomLevel = 2;  // Start slightly zoomed out (level +2)
                 this.applyZoomLevel();  // Apply the zoom level
             }
