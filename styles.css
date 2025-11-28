@@ -53,10 +53,13 @@ body {
     animation: gradientShift 15s ease infinite;
     color: var(--text-primary);
     overflow: hidden;
+    overflow-x: hidden;
     font-weight: 400;
     letter-spacing: -0.01em;
     transition: background 0.3s ease, color 0.3s ease;
     position: relative;
+    width: 100%;
+    max-width: 100vw;
 }
 
 body::before {
@@ -85,6 +88,9 @@ body::before {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
 }
 
 header {
@@ -205,15 +211,16 @@ header p {
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    overflow-x: auto;
+    overflow-x: hidden;
     overflow-y: hidden;
     padding: 1.5rem;
     box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.5);
     z-index: 1000;
     display: flex;
     flex-direction: row;
-    gap: 500px;
+    gap: 1.5rem;
     max-height: 350px;
+    justify-content: flex-start;
 }
 
 .sidebar::before {
@@ -264,18 +271,23 @@ header p {
     position: relative;
     overflow: hidden;
     flex-shrink: 0;
-    min-width: 400px;
-    max-width: 600px;
+    min-width: 300px;
+    max-width: 400px;
 }
 
 #hat-panel,
 #shirt-panel {
-    margin-left: -400px;
+    margin-left: 0;
 }
 
 #scene-panel {
-    margin-left: auto;
-    margin-right: 500px;
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 2000;
+    margin: 0;
+    min-width: 300px;
+    max-width: 350px;
 }
 
 .panel::before {
