@@ -154,7 +154,7 @@ class AvatarBuilder {
         );
         // Set initial camera position - mobile gets zoomed out 2x more and lowered
         if (window.innerWidth <= 768) {
-            this.camera.position.set(0, -0.8, 24.1);  // Mobile: zoomed out 2x + 20 more, lowered
+            this.camera.position.set(0, -0.8, 74.1);  // Mobile: zoomed out 2x + 70 more, lowered
         } else {
             this.camera.position.set(0, -0.5, 2.05);  // Desktop: Lower camera to show full otter
         }
@@ -2000,8 +2000,8 @@ class AvatarBuilder {
         
         // Mobile-specific camera adjustments: zoom out 2x more and lower camera
         if (window.innerWidth <= 768) {
-            // Zoom out 2x more + 20: (2.05 * 2) + 20 = 24.1
-            this.camera.position.set(0, -0.8, 24.1);
+            // Zoom out 2x more + 70: (2.05 * 2) + 70 = 74.1
+            this.camera.position.set(0, -0.8, 74.1);
             if (this.controls) {
                 // Lower the target more for mobile
                 this.controls.target.set(0, -0.6, 0);
