@@ -152,7 +152,7 @@ class AvatarBuilder {
             0.1,
             1000
         );
-        this.camera.position.set(0, 0, 2);
+        this.camera.position.set(0, 0, 2.05);
 
         // Renderer
         const container = document.getElementById('canvas-container');
@@ -245,13 +245,13 @@ class AvatarBuilder {
             1.25,  // Level -3
             1.5,   // Level -2
             1.75,  // Level -1
-            2.0,   // Level 0 (base)
-            2.5,   // Level +1
-            3.0,   // Level +2
-            3.5,   // Level +3
-            4.0,   // Level +4
-            4.5,   // Level +5
-            5.0    // Level +6 (furthest)
+            2.05,  // Level 0 (base) - moved back 5px
+            2.55,  // Level +1
+            3.05,  // Level +2 - moved back 5px
+            3.55,  // Level +3
+            4.05,  // Level +4
+            4.55,  // Level +5
+            5.05   // Level +6 (furthest)
         ];
 
         // Add wheel event listener to canvas
