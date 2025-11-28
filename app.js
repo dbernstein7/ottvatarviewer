@@ -152,10 +152,10 @@ class AvatarBuilder {
             0.1,
             1000
         );
-        // Set initial camera position - mobile gets zoomed out more and lower
+        // Set initial camera position - mobile gets zoomed out more and raised
         // Camera faces model front-on (positive Z axis)
         if (window.innerWidth <= 768) {
-            this.camera.position.set(0, -1, 20.0);  // Mobile: zoomed out to 20, lowered to -1
+            this.camera.position.set(0, 3, 20.0);  // Mobile: zoomed out to 20, raised to 3
         } else {
             this.camera.position.set(0, -0.5, 2.05);  // Desktop: Lower camera to show full otter, face-on
         }
@@ -1999,11 +1999,11 @@ class AvatarBuilder {
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(container.clientWidth, container.clientHeight);
         
-        // Mobile-specific camera adjustments: zoom out more and lower camera
+        // Mobile-specific camera adjustments: zoom out more and raise camera
         // Camera faces model front-on (positive Z axis)
         if (window.innerWidth <= 768) {
-            // Zoom out more on mobile: increased Z distance to 20.0, lowered to -1
-            this.camera.position.set(0, -1, 20.0);
+            // Zoom out more on mobile: increased Z distance to 20.0, raised to 3
+            this.camera.position.set(0, 3, 20.0);
             if (this.controls) {
                 // Center the target for mobile
                 this.controls.target.set(0, 0, 0);
