@@ -152,7 +152,7 @@ class AvatarBuilder {
             0.1,
             1000
         );
-        this.camera.position.set(0, -0.3, 2.05);  // Lower camera to show full otter
+        this.camera.position.set(0, -0.5, 2.05);  // Lower camera to show full otter
 
         // Renderer
         const container = document.getElementById('canvas-container');
@@ -169,7 +169,7 @@ class AvatarBuilder {
         // Enable zoom for touch devices (pinch), but we'll handle mouse wheel manually
         this.controls.enableZoom = true;  // Enable zoom for touch devices
         this.controls.enableDolly = true;  // Enable pinch zoom (dolly)
-        this.controls.target.set(0, -0.2, 0);  // Lower target to center on otter body
+        this.controls.target.set(0, -0.4, 0);  // Lower target to center on otter body
         
         // Enable panning with middle mouse button (scroll wheel click)
         this.controls.mouseButtons = {
@@ -817,7 +817,7 @@ class AvatarBuilder {
 
             // Reset camera and controls to center on the model
             // Set to perfect viewing position matching the desired size
-            this.controls.target.set(0, 0, 0);
+                this.controls.target.set(0, -0.4, 0);
             this.currentZoomLevel = 2;  // Start slightly zoomed out (level +2)
             this.applyZoomLevel();  // Apply the zoom level
 

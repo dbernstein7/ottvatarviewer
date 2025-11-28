@@ -913,7 +913,7 @@ header p {
     }
 
     .randomize-btn {
-        bottom: 1rem !important;
+        bottom: 320px !important;
         right: 1rem !important;
         padding: 0.875rem 1.5rem;
         font-size: 1rem;
@@ -981,7 +981,7 @@ header p {
     }
 
     .randomize-btn {
-        bottom: 0.75rem !important;
+        bottom: 280px !important;
         right: 0.75rem !important;
         padding: 0.75rem 1.25rem;
         font-size: 0.9rem;
