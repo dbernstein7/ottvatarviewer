@@ -154,9 +154,9 @@ class AvatarBuilder {
         );
         // Set initial camera position - mobile gets zoomed out 2x more and lowered
         if (window.innerWidth <= 768) {
-            this.camera.position.set(0, -0.8, 74.1);  // Mobile: zoomed out 2x + 70 more, lowered
+            this.camera.position.set(0, -0.8, 24.1);  // Mobile: zoomed out 2x + 20 more, lowered
         } else {
-            this.camera.position.set(0, -0.5, 2.05);  // Desktop: Lower camera to show full otter
+            this.camera.position.set(0, 0.2, 2.05);  // Desktop: Higher camera position
         }
 
         // Renderer
@@ -179,7 +179,7 @@ class AvatarBuilder {
         if (window.innerWidth <= 768) {
             this.controls.target.set(0, -0.6, 0);  // Mobile: lower target
         } else {
-            this.controls.target.set(0, -0.4, 0);  // Desktop: Lower target to center on otter body
+            this.controls.target.set(0, 0, 0);  // Desktop: Center target
         }
         
         // Enable panning with middle mouse button (scroll wheel click)
@@ -752,7 +752,7 @@ class AvatarBuilder {
                 if (window.innerWidth <= 768) {
                     this.controls.target.set(0, -0.6, 0);  // Mobile: lower target
                 } else {
-                    this.controls.target.set(0, -0.4, 0);  // Desktop
+                    this.controls.target.set(0, 0, 0);  // Desktop: center target
                 }
                 this.currentZoomLevel = 2;  // Start slightly zoomed out (level +2)
                 this.applyZoomLevel();  // Apply the zoom level
@@ -836,7 +836,7 @@ class AvatarBuilder {
             if (window.innerWidth <= 768) {
                 this.controls.target.set(0, -0.6, 0);  // Mobile: lower target
             } else {
-                this.controls.target.set(0, -0.4, 0);  // Desktop
+                this.controls.target.set(0, 0, 0);  // Desktop: center target
             }
             this.currentZoomLevel = 2;  // Start slightly zoomed out (level +2)
             this.applyZoomLevel();  // Apply the zoom level
@@ -2000,17 +2000,17 @@ class AvatarBuilder {
         
         // Mobile-specific camera adjustments: zoom out 2x more and lower camera
         if (window.innerWidth <= 768) {
-            // Zoom out 2x more + 70: (2.05 * 2) + 70 = 74.1
-            this.camera.position.set(0, -0.8, 74.1);
+            // Zoom out 2x more + 20: (2.05 * 2) + 20 = 24.1
+            this.camera.position.set(0, -0.8, 24.1);
             if (this.controls) {
                 // Lower the target more for mobile
                 this.controls.target.set(0, -0.6, 0);
             }
         } else {
-            // Desktop: use original position
-            this.camera.position.set(0, -0.5, 2.05);
+            // Desktop: use higher position
+            this.camera.position.set(0, 0.2, 2.05);
             if (this.controls) {
-                this.controls.target.set(0, -0.4, 0);
+                this.controls.target.set(0, 0, 0);
             }
         }
     }
