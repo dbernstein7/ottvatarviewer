@@ -177,8 +177,9 @@ class AvatarBuilder {
         };
         this.controls.touches = {
             ONE: THREE.TOUCH.ROTATE,
-            TWO: THREE.TOUCH.DOLLY_PAN
+            TWO: THREE.TOUCH.PAN  // Disable pinch zoom, use pan instead
         };
+        this.controls.enableDolly = false;  // Disable pinch zoom
         
         // Setup custom zoom with discrete levels
         this.setupDiscreteZoom();
