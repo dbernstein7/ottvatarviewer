@@ -754,7 +754,7 @@ header p {
     max-height: 250px;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 1.25rem 1.25rem 1.5rem 1.25rem;
+    padding: 1.25rem 1.25rem 2.5rem 1.25rem;
 }
 
 .fur-gallery .fur-btn {
