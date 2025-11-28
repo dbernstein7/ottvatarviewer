@@ -792,18 +792,21 @@ header p {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100px;
+    width: 100%;
+    max-width: 100%;
     aspect-ratio: 1;
+    box-sizing: border-box;
 }
 
 .fur-btn img {
-    width: 100%;
-    height: 100%;
-    max-width: 90px;
-    max-height: 90px;
+    width: auto;
+    height: auto;
+    max-width: calc(100% - 4px);
+    max-height: calc(100% - 4px);
     object-fit: contain;
     display: block;
     padding: 2px;
+    box-sizing: border-box;
 }
 
 /* Fallback styling for text-only buttons */
