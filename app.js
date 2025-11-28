@@ -152,12 +152,10 @@ class AvatarBuilder {
             0.1,
             1000
         );
-        // Set initial camera position - mobile gets zoomed out more and positioned at angle
-        // Camera positioned for three-quarter view showing both front and side
+        // Set initial camera position - mobile gets positioned below model
         if (window.innerWidth <= 768) {
-            // Mobile: Position camera at an angle (offset X, raised Y, zoomed out Z)
-            // This creates a three-quarter view like in the image
-            this.camera.position.set(8, 3, 15.0);  // Mobile: angled view, zoomed out
+            // Mobile: Camera positioned directly below model
+            this.camera.position.set(0, -20, 0);  // Mobile: X=0, Y=-20, Z=0
         } else {
             this.camera.position.set(0, -0.5, 2.05);  // Desktop: Lower camera to show full otter, face-on
         }
@@ -2001,12 +1999,10 @@ class AvatarBuilder {
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(container.clientWidth, container.clientHeight);
         
-        // Mobile-specific camera adjustments: zoom out more and position at angle
-        // Camera positioned for three-quarter view
+        // Mobile-specific camera adjustments: position directly below model
         if (window.innerWidth <= 768) {
-            // Mobile: Position camera at an angle (offset X, raised Y, zoomed out Z)
-            // This creates a three-quarter view showing both front and side
-            this.camera.position.set(8, 3, 15.0);
+            // Mobile: Camera positioned directly below model
+            this.camera.position.set(0, -20, 0);  // X=0, Y=-20, Z=0
             if (this.controls) {
                 // Center the target for mobile
                 this.controls.target.set(0, 0, 0);
