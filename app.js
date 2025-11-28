@@ -1977,6 +1977,15 @@ class AvatarBuilder {
         this.camera.aspect = container.clientWidth / container.clientHeight;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(container.clientWidth, container.clientHeight);
+        
+        // Ensure camera position and target are correct for mobile
+        // Mobile devices may need the same adjustments as desktop
+        if (window.innerWidth <= 768) {
+            this.camera.position.set(0, -0.5, 2.05);
+            if (this.controls) {
+                this.controls.target.set(0, -0.4, 0);
+            }
+        }
     }
 
     animate() {
