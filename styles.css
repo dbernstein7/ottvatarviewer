@@ -717,11 +717,24 @@ header p {
 
 .randomize-btn:hover {
     background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent) 100%);
-    transform: translateY(-4px) scale(1.08);
     box-shadow: 0 16px 48px rgba(139, 92, 246, 0.6),
                 0 0 60px rgba(139, 92, 246, 0.4),
                 inset 0 1px 0 rgba(255, 255, 255, 0.4),
                 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Desktop hover transform */
+@media (min-width: 769px) {
+    .randomize-btn:hover {
+        transform: translateY(-4px) scale(1.08);
+    }
+}
+
+/* Mobile hover transform (preserves centering) */
+@media (max-width: 768px) {
+    .randomize-btn:hover {
+        transform: translateX(-50%) translateY(-4px) scale(1.08);
+    }
 }
 
 .randomize-btn:active {
