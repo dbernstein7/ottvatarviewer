@@ -26,6 +26,8 @@ class AvatarBuilder {
         // Reference transforms removed - using default positioning
         this.autoRotate = false;  // Auto-rotation state
         this.rotationSpeed = 0.005;  // Rotation speed (radians per frame)
+        this.needsRender = true;  // Performance: only render when needed
+        this.isRendering = false;  // Prevent multiple renders
         
         // Available fur options
         this.furOptions = [
@@ -100,25 +102,16 @@ class AvatarBuilder {
     }
 
     async init() {
-        console.log('AvatarBuilder.init() called');
         try {
             this.setupTheme();
-            console.log('Theme setup complete');
             this.setupScene();
-            console.log('Scene setup complete');
             // Note: Reference file loading removed - using default transforms
             this.setupEventListeners();
-            console.log('Event listeners setup complete');
             this.setupFurGallery();
-            console.log('Fur gallery setup complete');
             this.setupHatGallery();
-            console.log('Hat gallery setup complete');
             this.setupShirtGallery();
-            console.log('Shirt gallery setup complete');
             this.setupEyesGallery();
-            console.log('Eyes gallery setup complete');
             this.animate();
-            console.log('Animation started');
         } catch (error) {
             console.error('Error in AvatarBuilder.init():', error);
             throw error;
@@ -173,12 +166,18 @@ class AvatarBuilder {
             this.camera.position.set(0, 0.2, 3.5);  // Desktop: Higher camera position, moved back
         }
 
-        // Renderer
+        // Renderer with performance optimizations
         const container = document.getElementById('canvas-container');
-        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer = new THREE.WebGLRenderer({ 
+            antialias: true,
+            powerPreference: "high-performance",
+            stencil: false,
+            depth: true
+        });
         this.renderer.setSize(container.clientWidth, container.clientHeight);
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
         container.appendChild(this.renderer.domElement);
 
         // Controls
@@ -248,11 +247,14 @@ class AvatarBuilder {
         this.scene.add(this.ambientLight);
 
         // Main key light (bright, from top-right-front)
+        // Reduced shadow map size for better performance (1024 instead of 2048)
         this.directionalLight = new THREE.DirectionalLight(0xffffff, 3);
         this.directionalLight.position.set(5, 10, 5);
         this.directionalLight.castShadow = true;
-        this.directionalLight.shadow.mapSize.width = 2048;
-        this.directionalLight.shadow.mapSize.height = 2048;
+        this.directionalLight.shadow.mapSize.width = 1024;  // Reduced from 2048
+        this.directionalLight.shadow.mapSize.height = 1024; // Reduced from 2048
+        this.directionalLight.shadow.camera.near = 0.5;
+        this.directionalLight.shadow.camera.far = 50;
         this.scene.add(this.directionalLight);
 
         // Fill light (softer, from opposite side)
@@ -598,19 +600,16 @@ class AvatarBuilder {
             button.className = 'fur-btn';
             button.title = `Load ${furName}.glb from WEARABLES/Furs folder`;
             
-            // Create image element
+            // Create image element with lazy loading
             const img = document.createElement('img');
             const imagePath = `Selection Images/Furs/${furName}.png`;
+            img.loading = 'lazy'; // Native lazy loading
             img.src = imagePath;
             img.alt = furName;
-            img.onerror = (e) => {
-                console.warn(`Failed to load image: ${imagePath}`, e);
+            img.onerror = () => {
                 // Fallback to text if image doesn't exist
                 button.innerHTML = '';
                 button.textContent = furName;
-            };
-            img.onload = () => {
-                console.log(`Successfully loaded image: ${imagePath}`);
             };
             button.appendChild(img);
             
@@ -630,19 +629,16 @@ class AvatarBuilder {
             button.className = 'fur-btn';
             button.title = `Load ${hatName}.glb hat`;
             
-            // Create image element
+            // Create image element with lazy loading
             const img = document.createElement('img');
             const imagePath = `Selection Images/Hats/${hatName}.png`;
+            img.loading = 'lazy'; // Native lazy loading
             img.src = imagePath;
             img.alt = hatName;
-            img.onerror = (e) => {
-                console.warn(`Failed to load image: ${imagePath}`, e);
+            img.onerror = () => {
                 // Fallback to text if image doesn't exist
                 button.innerHTML = '';
                 button.textContent = hatName;
-            };
-            img.onload = () => {
-                console.log(`Successfully loaded image: ${imagePath}`);
             };
             button.appendChild(img);
             
@@ -667,8 +663,9 @@ class AvatarBuilder {
             button.className = 'fur-btn';
             button.title = `Load ${shirtName}.glb shirt`;
             
-            // Create image element
+            // Create image element with lazy loading
             const img = document.createElement('img');
+            img.loading = 'lazy'; // Native lazy loading
             img.src = `Selection%20Images/Shirt/${encodeURIComponent(shirtName)}.png`;
             img.alt = shirtName;
             img.onerror = () => {
@@ -699,23 +696,20 @@ class AvatarBuilder {
             button.className = 'fur-btn';
             button.title = `Load ${eyeName}.glb eyes`;
             
-            // Create image element
+            // Create image element with lazy loading
             const img = document.createElement('img');
             // Skip image for Default since it doesn't have a PNG
             if (eyeName === 'Default') {
                 button.textContent = eyeName;
             } else {
                 const imagePath = `Selection Images/Eyes/${eyeName}.png`;
+                img.loading = 'lazy'; // Native lazy loading
                 img.src = imagePath;
                 img.alt = eyeName;
-                img.onerror = (e) => {
-                    console.warn(`Failed to load image: ${imagePath}`, e);
+                img.onerror = () => {
                     // Fallback to text if image doesn't exist
                     button.innerHTML = '';
                     button.textContent = eyeName;
-                };
-                img.onload = () => {
-                    console.log(`Successfully loaded image: ${imagePath}`);
                 };
                 button.appendChild(img);
             }
@@ -746,7 +740,6 @@ class AvatarBuilder {
         const loader = new GLTFLoader();
         
         try {
-            console.log(`Loading fur: ${furName}, filePath: ${filePath}`);
             const gltf = await new Promise((resolve, reject) => {
                 loader.load(
                     filePath,
@@ -820,6 +813,7 @@ class AvatarBuilder {
             }
             
             this.scene.add(this.model);
+            this.requestRender(); // Scene changed, request render
 
             // Update UI
             document.getElementById('scene-panel').style.display = 'block';
@@ -1192,7 +1186,6 @@ class AvatarBuilder {
             Math.abs(this.model.position.z) < 0.01) {
             // Model is already correctly positioned in Blender - only apply minimal scaling if needed
             // Don't reposition, preserve Blender's 0,0,0 positioning
-            console.log('Model already centered at origin - preserving Blender positioning');
             
             // Only scale if the model is extremely large or small (outside reasonable range)
             const maxDim = Math.max(size.x, size.y, size.z);
@@ -1200,19 +1193,13 @@ class AvatarBuilder {
                 // Model is very large, scale it down
                 const scale = 2.0 / maxDim;
                 this.model.scale.multiplyScalar(scale);
-                console.log(`Applied scale ${scale.toFixed(3)}x for large model`);
             } else if (maxDim < 0.1) {
                 // Model is very small, scale it up
                 const scale = 2.0 / maxDim;
                 this.model.scale.multiplyScalar(scale);
-                console.log(`Applied scale ${scale.toFixed(3)}x for small model`);
-            } else {
-                // Model is in reasonable size range, keep original scale
-                console.log('Model size is reasonable - preserving original scale');
             }
         } else {
             // Model is not centered - apply centering (for older files or incorrectly positioned models)
-            console.log('Model not centered - applying centering transform');
             this.model.position.sub(center);
             this.model.position.y -= 0.9;  // Move model down to appear lower on screen
             this.model.position.x = 0;
@@ -1352,6 +1339,7 @@ class AvatarBuilder {
 
             this.currentHat = hatGroup;
             document.getElementById("remove-hat-btn").disabled = false;
+            this.requestRender(); // Scene changed, request render
         } catch (error) {
             console.error('Error loading hat:', error);
             alert(`Error loading ${hatName}.glb:\n\n${error.message}\n\nMake sure the file exists in the WEARABLES/Hats folder.`);
@@ -1924,6 +1912,7 @@ class AvatarBuilder {
             }
             this.currentHat = null;
             document.getElementById('remove-hat-btn').disabled = true;
+            this.requestRender(); // Scene changed, request render
             
             // Update object selection dropdown if edit mode is active
             if (this.editMode) {
@@ -2000,6 +1989,7 @@ class AvatarBuilder {
 
             this.currentShirt = shirtGroup;
             document.getElementById("remove-shirt-btn").disabled = false;
+            this.requestRender(); // Scene changed, request render
             
             // Update object selection dropdown if edit mode is active
             if (this.editMode) {
@@ -2021,6 +2011,7 @@ class AvatarBuilder {
             }
             this.currentShirt = null;
             document.getElementById('remove-shirt-btn').disabled = true;
+            this.requestRender(); // Scene changed, request render
             
             // Update object selection dropdown if edit mode is active
             if (this.editMode) {
@@ -2114,6 +2105,7 @@ class AvatarBuilder {
 
             this.currentEyes = eyesGroup;
             document.getElementById("remove-eyes-btn").disabled = false;
+            this.requestRender(); // Scene changed, request render
             
             // Update object selection dropdown if edit mode is active
             if (this.editMode) {
@@ -2135,6 +2127,7 @@ class AvatarBuilder {
             }
             this.currentEyes = null;
             document.getElementById('remove-eyes-btn').disabled = true;
+            this.requestRender(); // Scene changed, request render
             
             // Update object selection dropdown if edit mode is active
             if (this.editMode) {
@@ -2146,7 +2139,6 @@ class AvatarBuilder {
     randomize() {
         // Randomly select a fur
         const randomFur = this.furOptions[Math.floor(Math.random() * this.furOptions.length)];
-        console.log(`Randomizing: fur = ${randomFur}`);
         
         // Load the random fur
         this.loadFurFile(randomFur).then(() => {
@@ -2155,7 +2147,6 @@ class AvatarBuilder {
             
             if (shouldHaveHat) {
                 const randomHat = this.hatOptions[Math.floor(Math.random() * this.hatOptions.length)];
-                console.log(`Randomizing: hat = ${randomHat}`);
                 // Small delay to ensure fur is fully loaded
                 setTimeout(() => {
                     this.loadHat(randomHat);
@@ -2163,7 +2154,6 @@ class AvatarBuilder {
             } else {
                 // Remove hat if one exists
                 this.removeHat();
-                console.log('Randomizing: no hat');
             }
 
             // Randomly select a shirt (or no shirt)
@@ -2171,7 +2161,6 @@ class AvatarBuilder {
             
             if (shouldHaveShirt) {
                 const randomShirt = this.shirtOptions[Math.floor(Math.random() * this.shirtOptions.length)];
-                console.log(`Randomizing: shirt = ${randomShirt}`);
                 // Small delay to ensure fur is fully loaded
                 setTimeout(() => {
                     this.loadShirt(randomShirt);
@@ -2179,7 +2168,6 @@ class AvatarBuilder {
             } else {
                 // Remove shirt if one exists
                 this.removeShirt();
-                console.log('Randomizing: no shirt');
             }
 
             // Randomly select eyes (or no eyes)
@@ -2187,7 +2175,6 @@ class AvatarBuilder {
             
             if (shouldHaveEyes) {
                 const randomEyes = this.eyeOptions[Math.floor(Math.random() * this.eyeOptions.length)];
-                console.log(`Randomizing: eyes = ${randomEyes}`);
                 // Small delay to ensure fur is fully loaded
                 setTimeout(() => {
                     this.loadEyes(randomEyes);
@@ -2195,7 +2182,6 @@ class AvatarBuilder {
             } else {
                 // Remove eyes if they exist
                 this.removeEyes();
-                console.log('Randomizing: no eyes');
             }
         });
     }
@@ -2227,15 +2213,17 @@ class AvatarBuilder {
     animate() {
         this.animationFrameId = requestAnimationFrame(() => this.animate());
         
+        // Performance: Always update controls (they handle damping internally)
+        if (this.controls) {
+            this.controls.update();
+        }
+        
         // Auto-rotate model if enabled
-        // Rotate the entire scene or use OrbitControls auto-rotate
         if (this.autoRotate) {
             if (this.controls) {
-                // Use OrbitControls built-in auto-rotate for smoother rotation
                 this.controls.autoRotate = true;
-                this.controls.autoRotateSpeed = 2.0; // Rotation speed
+                this.controls.autoRotateSpeed = 2.0;
             } else if (this.model) {
-                // Fallback: rotate model directly
                 this.model.rotation.y += this.rotationSpeed;
             }
         } else {
@@ -2244,16 +2232,24 @@ class AvatarBuilder {
             }
         }
         
-        if (this.controls) {
-            this.controls.update();
-        }
-        
-        // TransformControls don't need update() - they update automatically
-
+        // Render: OrbitControls with damping needs continuous rendering when active
+        // Skip rendering only if no model is loaded and nothing is happening
         if (this.renderer && this.scene && this.camera) {
-            this.renderer.render(this.scene, this.camera);
+            // Render if:
+            // - Scene was explicitly marked as needing render
+            // - Model is loaded (user expects to see it)
+            // - Controls are enabled (user might be interacting)
+            // - Auto-rotate is on
+            if (this.needsRender || this.model || (this.controls && this.controls.enabled) || this.autoRotate) {
+                this.renderer.render(this.scene, this.camera);
+                this.needsRender = false;
+            }
         }
-
+    }
+    
+    // Mark that a render is needed (call this when scene changes)
+    requestRender() {
+        this.needsRender = true;
     }
     
     setEditMode(enabled) {
@@ -2709,11 +2705,7 @@ class AvatarBuilder {
             this.historyIndex--;
         }
         
-        console.log(`State saved: ${action}`, {
-            hat: state.hat ? `${state.hat.position.x.toFixed(3)}, ${state.hat.position.y.toFixed(3)}, ${state.hat.position.z.toFixed(3)}` : 'null',
-            shirt: state.shirt ? `${state.shirt.position.x.toFixed(3)}, ${state.shirt.position.y.toFixed(3)}, ${state.shirt.position.z.toFixed(3)}` : 'null',
-            eyes: state.eyes ? `${state.eyes.position.x.toFixed(3)}, ${state.eyes.position.y.toFixed(3)}, ${state.eyes.position.z.toFixed(3)}` : 'null'
-        });
+        // State saved (verbose logging removed for performance)
         
         // Also save to localStorage for persistence across page refreshes
         this.savePositionsToStorage();
