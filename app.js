@@ -2170,19 +2170,12 @@ class AvatarBuilder {
                 this.removeShirt();
             }
 
-            // Randomly select eyes (or no eyes)
-            const shouldHaveEyes = Math.random() > 0.1; // 90% chance of having eyes
-            
-            if (shouldHaveEyes) {
-                const randomEyes = this.eyeOptions[Math.floor(Math.random() * this.eyeOptions.length)];
-                // Small delay to ensure fur is fully loaded
-                setTimeout(() => {
-                    this.loadEyes(randomEyes);
-                }, 200);
-            } else {
-                // Remove eyes if they exist
-                this.removeEyes();
-            }
+            // Always select eyes (100% chance - eyes must show every generation)
+            const randomEyes = this.eyeOptions[Math.floor(Math.random() * this.eyeOptions.length)];
+            // Small delay to ensure fur is fully loaded
+            setTimeout(() => {
+                this.loadEyes(randomEyes);
+            }, 200);
         });
     }
 
