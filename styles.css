@@ -1049,16 +1049,12 @@ header p {
         font-size: 0.7rem;
     }
     
-    .nft-search-btn::after {
-        content: '';
-    }
-    
     .nft-search-btn {
         min-width: auto;
     }
-    }
+}
 
-    .logo {
+.logo {
         width: 36px;
         height: 36px;
     }
