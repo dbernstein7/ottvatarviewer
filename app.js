@@ -951,7 +951,10 @@ class AvatarBuilder {
             // Reset camera and controls to center on the model
             // Set to perfect viewing position matching the desired size
             if (window.innerWidth <= 768) {
-                this.controls.target.set(0, -0.6, 0);  // Mobile: lower target
+                // Mobile: Camera position enforcement - ensures camera is at correct position after loading
+                this.controls.target.set(0, 0, 0);  // Mobile: center target
+                this.camera.position.set(0, 0, -50);  // Mobile: enforce camera position
+                this.controls.update();  // Update controls to apply position
             } else {
                 this.controls.target.set(0, -0.4, 0);  // Desktop: target at -0.4
             }
