@@ -159,9 +159,9 @@ class AvatarBuilder {
             0.1,
             1000
         );
-        // Set initial camera position - mobile gets zoomed out 2x more and lowered
+        // Set initial camera position - mobile gets zoomed out further
         if (window.innerWidth <= 768) {
-            this.camera.position.set(0, -0.8, 24.1);  // Mobile: zoomed out 2x + 20 more, lowered
+            this.camera.position.set(0, 0, -50);  // Mobile: zoomed out to prevent cutoff
         } else {
             this.camera.position.set(0, 0.2, 3.5);  // Desktop: Higher camera position, moved back
         }
@@ -190,7 +190,8 @@ class AvatarBuilder {
         
         // Set target based on device type
         if (window.innerWidth <= 768) {
-            this.controls.target.set(0, -0.6, 0);  // Mobile: lower target
+            this.controls.target.set(0, 0, 0);  // Mobile: center target
+            this.camera.position.set(0, 0, -50);  // Mobile: enforce camera position
         } else {
             this.controls.target.set(0, -0.4, 0);  // Desktop: target at -0.4
         }
@@ -842,33 +843,13 @@ class AvatarBuilder {
             } else {
                 // First load - center and scale normally
                 this.centerModel();
-                
-                // On mobile, adjust model position to work with the far camera
-                if (window.innerWidth <= 768) {
-                    // Mobile camera is at z=24.1, so ensure model is positioned correctly
-                    // The model should be at origin (0,0,0) or slightly below for proper viewing
-                    // Scale might need adjustment for the far camera distance
-                    const box = new THREE.Box3().setFromObject(this.model);
-                    const size = box.getSize(new THREE.Vector3());
-                    const maxDim = Math.max(size.x, size.y, size.z);
-                    
-                    // For mobile with far camera, scale model larger so it's visible
-                    // Camera is at z=24.1, so we need larger scale
-                    if (maxDim < 2.0) {
-                        const scale = 2.5 / maxDim;  // Scale up more for mobile
-                        this.model.scale.multiplyScalar(scale);
-                    }
-                    
-                    // Ensure model is at origin for mobile camera
-                    this.model.position.set(0, 0, 0);
-                }
-                
                 // Reset camera and controls to center on the model
                 // Set target based on device type
                 if (window.innerWidth <= 768) {
-                    this.controls.target.set(0, -0.6, 0);  // Mobile: lower target
-                    // Ensure camera is at the correct position for mobile
-                    this.camera.position.set(0, -0.8, 24.1);
+                    // Mobile: Camera position enforcement - ensures camera is at correct position after loading
+                    this.controls.target.set(0, 0, 0);  // Mobile: center target
+                    this.camera.position.set(0, 0, -50);  // Mobile: enforce camera position
+                    this.controls.update();  // Update controls to apply position
                 } else {
                     this.controls.target.set(0, -0.4, 0);  // Desktop: target at -0.4
                 }
@@ -2378,13 +2359,13 @@ class AvatarBuilder {
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(container.clientWidth, container.clientHeight);
         
-        // Mobile-specific camera adjustments: zoom out 2x more and lower camera
+        // Mobile-specific camera adjustments: zoom out to prevent cutoff
         if (window.innerWidth <= 768) {
-            // Zoom out 2x more + 20: (2.05 * 2) + 20 = 24.1
-            this.camera.position.set(0, -0.8, 24.1);
+            // Camera position enforcement: ensures camera is at correct position (0, 0, -50) on mobile
+            this.camera.position.set(0, 0, -50);
             if (this.controls) {
-                // Lower the target more for mobile
-                this.controls.target.set(0, -0.6, 0);
+                this.controls.target.set(0, 0, 0);  // Center target
+                this.controls.update();  // Update controls to apply position
             }
         } else {
             // Desktop: use higher position, moved back
