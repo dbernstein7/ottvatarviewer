@@ -1052,9 +1052,8 @@ header p {
     .nft-search-btn {
         min-width: auto;
     }
-}
-
-.logo {
+    
+    .logo {
         width: 36px;
         height: 36px;
     }
