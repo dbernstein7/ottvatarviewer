@@ -525,6 +525,29 @@ class AvatarBuilder {
             this.randomize();
         });
         
+        // NFT Search functionality
+        const nftSearchBtn = document.getElementById('nft-search-btn');
+        const nftSearchInput = document.getElementById('nft-search-input');
+        
+        if (nftSearchBtn && nftSearchInput) {
+            // Search button click
+            nftSearchBtn.addEventListener('click', () => {
+                const nftNumber = parseInt(nftSearchInput.value);
+                if (nftNumber && nftNumber >= 1 && nftNumber <= 2222) {
+                    this.loadNFTTraits(nftNumber);
+                } else {
+                    this.showNFTError('Please enter a valid NFT number between 1 and 2222');
+                }
+            });
+            
+            // Enter key support
+            nftSearchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    nftSearchBtn.click();
+                }
+            });
+        }
+        
         // Scene controls
         // Background preset selector
         const bgPreset = document.getElementById('bg-preset');
@@ -2179,6 +2202,134 @@ class AvatarBuilder {
         });
     }
 
+    /* -----------------------------------------------------
+       NFT METADATA SEARCH
+    ----------------------------------------------------- */
+
+    async loadNFTTraits(nftNumber) {
+        const errorDiv = document.getElementById('nft-search-error');
+        errorDiv.style.display = 'none';
+        errorDiv.textContent = '';
+        
+        try {
+            // Load the metadata JSON file
+            const metadataPath = `metadata/${nftNumber}.json`;
+            const response = await fetch(metadataPath);
+            
+            if (!response.ok) {
+                throw new Error(`NFT #${nftNumber} not found`);
+            }
+            
+            const metadata = await response.json();
+            
+            // Extract traits from attributes array
+            const traits = {};
+            if (metadata.attributes && Array.isArray(metadata.attributes)) {
+                metadata.attributes.forEach(attr => {
+                    if (attr.trait_type && attr.value) {
+                        // Normalize trait type names
+                        const traitType = attr.trait_type.toLowerCase();
+                        const traitValue = attr.value.trim();
+                        
+                        // Skip "None" or empty values
+                        if (!traitValue || traitValue.toLowerCase() === 'none' || traitValue === '') {
+                            return;
+                        }
+                        
+                        if (traitType === 'fur') {
+                            traits.fur = traitValue;
+                        } else if (traitType === 'shirt') {
+                            traits.shirt = traitValue;
+                        } else if (traitType === 'eyes') {
+                            traits.eyes = traitValue;
+                        } else if (traitType === 'hats' || traitType === 'hat') {
+                            traits.hat = traitValue;
+                        }
+                    }
+                });
+            }
+            
+            // Load the traits onto the avatar
+            if (traits.fur) {
+                // Validate that fur exists in our options
+                if (!this.furOptions.includes(traits.fur)) {
+                    throw new Error(`Fur "${traits.fur}" not found in available options`);
+                }
+                
+                // Load fur first (required base)
+                await this.loadFurFile(traits.fur);
+                
+                // Then load other traits after a short delay to ensure fur is loaded
+                setTimeout(() => {
+                    if (traits.hat) {
+                        if (this.hatOptions.includes(traits.hat)) {
+                            this.loadHat(traits.hat).catch(err => {
+                                console.warn(`Could not load hat: ${traits.hat}`, err);
+                            });
+                        } else {
+                            console.warn(`Hat "${traits.hat}" not found in available options`);
+                        }
+                    }
+                    
+                    setTimeout(() => {
+                        if (traits.shirt) {
+                            if (this.shirtOptions.includes(traits.shirt)) {
+                                this.loadShirt(traits.shirt).catch(err => {
+                                    console.warn(`Could not load shirt: ${traits.shirt}`, err);
+                                });
+                            } else {
+                                console.warn(`Shirt "${traits.shirt}" not found in available options`);
+                            }
+                        }
+                        
+                        setTimeout(() => {
+                            if (traits.eyes) {
+                                if (this.eyeOptions.includes(traits.eyes)) {
+                                    this.loadEyes(traits.eyes).catch(err => {
+                                        console.warn(`Could not load eyes: ${traits.eyes}`, err);
+                                    });
+                                } else {
+                                    console.warn(`Eyes "${traits.eyes}" not found in available options`);
+                                }
+                            }
+                        }, 100);
+                    }, 100);
+                }, 200);
+            } else {
+                throw new Error('No Fur trait found in metadata');
+            }
+            
+            // Show success message
+            errorDiv.style.display = 'block';
+            errorDiv.style.color = 'var(--success)';
+            const loadedTraits = [];
+            if (traits.fur) loadedTraits.push(`Fur: ${traits.fur}`);
+            if (traits.hat) loadedTraits.push(`Hat: ${traits.hat}`);
+            if (traits.shirt) loadedTraits.push(`Shirt: ${traits.shirt}`);
+            if (traits.eyes) loadedTraits.push(`Eyes: ${traits.eyes}`);
+            errorDiv.textContent = `✓ Loaded NFT #${nftNumber}: ${loadedTraits.join(', ')}`;
+            
+            // Clear input after successful load
+            const input = document.getElementById('nft-search-input');
+            if (input) input.value = '';
+            
+            // Clear success message after 5 seconds
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+            
+        } catch (error) {
+            console.error('Error loading NFT traits:', error);
+            this.showNFTError(`Error loading NFT #${nftNumber}: ${error.message}`);
+        }
+    }
+    
+    showNFTError(message) {
+        const errorDiv = document.getElementById('nft-search-error');
+        errorDiv.style.display = 'block';
+        errorDiv.style.color = 'var(--warning)';
+        errorDiv.textContent = message;
+    }
 
     onWindowResize() {
         const container = document.getElementById('canvas-container');
