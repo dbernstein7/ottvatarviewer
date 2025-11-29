@@ -14,20 +14,19 @@
                     <img src="fishy-log.png.png" alt="Ottvatar Logo" class="logo">
                     <h1>Ottvatar Viewer</h1>
                 </div>
-                <div style="display: flex; gap: 0.75rem; align-items: center;">
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <div class="header-controls">
+                    <div class="nft-search-desktop">
                         <input 
                             type="number" 
                             id="nft-search-input" 
                             placeholder="NFT # (1-2222)" 
                             min="1" 
                             max="2222"
-                            style="width: 140px; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary); font-family: 'PORKYS', sans-serif; font-size: 0.875rem;"
+                            class="nft-search-input"
                         />
                         <button 
                             id="nft-search-btn" 
-                            class="btn btn-primary"
-                            style="padding: 0.5rem 1rem; font-size: 0.875rem; white-space: nowrap;"
+                            class="btn btn-primary nft-search-btn"
                             title="Load NFT traits"
                         >
                             🔍 Load
@@ -57,9 +56,28 @@
                         </div>
                     </div>
                 </div>
-                <button id="randomize-btn" class="randomize-btn" title="Randomize fur and hat">
-                    🎲 Randomize
-                </button>
+                <div class="bottom-controls">
+                    <div class="nft-search-mobile">
+                        <input 
+                            type="number" 
+                            id="nft-search-input-mobile" 
+                            placeholder="NFT #" 
+                            min="1" 
+                            max="2222"
+                            class="nft-search-input-mobile"
+                        />
+                        <button 
+                            id="nft-search-btn-mobile" 
+                            class="btn btn-primary nft-search-btn-mobile"
+                            title="Load NFT traits"
+                        >
+                            🔍
+                        </button>
+                    </div>
+                    <button id="randomize-btn" class="randomize-btn" title="Randomize fur and hat">
+                        🎲 Randomize
+                    </button>
+                </div>
                 
                 <div class="sidebar">
                     <div class="panel">

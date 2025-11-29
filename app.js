@@ -525,25 +525,43 @@ class AvatarBuilder {
             this.randomize();
         });
         
-        // NFT Search functionality
+        // NFT Search functionality - Desktop
         const nftSearchBtn = document.getElementById('nft-search-btn');
         const nftSearchInput = document.getElementById('nft-search-input');
         
+        // NFT Search functionality - Mobile
+        const nftSearchBtnMobile = document.getElementById('nft-search-btn-mobile');
+        const nftSearchInputMobile = document.getElementById('nft-search-input-mobile');
+        
+        // Helper function to handle search
+        const handleSearch = (inputElement) => {
+            const nftNumber = parseInt(inputElement.value);
+            if (nftNumber && nftNumber >= 1 && nftNumber <= 2222) {
+                this.loadNFTTraits(nftNumber);
+                // Clear both inputs after search
+                if (nftSearchInput) nftSearchInput.value = '';
+                if (nftSearchInputMobile) nftSearchInputMobile.value = '';
+            } else {
+                this.showNFTError('Please enter a valid NFT number between 1 and 2222');
+            }
+        };
+        
+        // Desktop search
         if (nftSearchBtn && nftSearchInput) {
-            // Search button click
-            nftSearchBtn.addEventListener('click', () => {
-                const nftNumber = parseInt(nftSearchInput.value);
-                if (nftNumber && nftNumber >= 1 && nftNumber <= 2222) {
-                    this.loadNFTTraits(nftNumber);
-                } else {
-                    this.showNFTError('Please enter a valid NFT number between 1 and 2222');
-                }
-            });
-            
-            // Enter key support
+            nftSearchBtn.addEventListener('click', () => handleSearch(nftSearchInput));
             nftSearchInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
-                    nftSearchBtn.click();
+                    handleSearch(nftSearchInput);
+                }
+            });
+        }
+        
+        // Mobile search
+        if (nftSearchBtnMobile && nftSearchInputMobile) {
+            nftSearchBtnMobile.addEventListener('click', () => handleSearch(nftSearchInputMobile));
+            nftSearchInputMobile.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    handleSearch(nftSearchInputMobile);
                 }
             });
         }
