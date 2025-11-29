@@ -1002,7 +1002,9 @@ header p {
 
     .randomize-btn {
         bottom: 120px !important;
-        right: 1rem !important;
+        right: auto !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
         padding: 0.875rem 1.5rem;
         font-size: 1rem;
     }
@@ -1108,7 +1110,9 @@ header p {
 
     .randomize-btn {
         bottom: 120px !important;
-        right: 0.75rem !important;
+        right: auto !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
         padding: 0.75rem 1.25rem;
         font-size: 0.9rem;
     }
