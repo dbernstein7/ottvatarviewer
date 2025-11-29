@@ -842,10 +842,33 @@ class AvatarBuilder {
             } else {
                 // First load - center and scale normally
                 this.centerModel();
+                
+                // On mobile, adjust model position to work with the far camera
+                if (window.innerWidth <= 768) {
+                    // Mobile camera is at z=24.1, so ensure model is positioned correctly
+                    // The model should be at origin (0,0,0) or slightly below for proper viewing
+                    // Scale might need adjustment for the far camera distance
+                    const box = new THREE.Box3().setFromObject(this.model);
+                    const size = box.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    
+                    // For mobile with far camera, scale model larger so it's visible
+                    // Camera is at z=24.1, so we need larger scale
+                    if (maxDim < 2.0) {
+                        const scale = 2.5 / maxDim;  // Scale up more for mobile
+                        this.model.scale.multiplyScalar(scale);
+                    }
+                    
+                    // Ensure model is at origin for mobile camera
+                    this.model.position.set(0, 0, 0);
+                }
+                
                 // Reset camera and controls to center on the model
                 // Set target based on device type
                 if (window.innerWidth <= 768) {
                     this.controls.target.set(0, -0.6, 0);  // Mobile: lower target
+                    // Ensure camera is at the correct position for mobile
+                    this.camera.position.set(0, -0.8, 24.1);
                 } else {
                     this.controls.target.set(0, -0.4, 0);  // Desktop: target at -0.4
                 }
