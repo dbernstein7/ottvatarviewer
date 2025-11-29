@@ -159,9 +159,9 @@ class AvatarBuilder {
             0.1,
             1000
         );
-        // Set initial camera position - mobile gets zoomed out further
+        // Set initial camera position - mobile gets zoomed out 2x more and lowered
         if (window.innerWidth <= 768) {
-            this.camera.position.set(0, 0, -50);  // Mobile: zoomed out to prevent cutoff
+            this.camera.position.set(0, -0.6, 4.5);  // Mobile: closer and better centered
         } else {
             this.camera.position.set(0, 0.2, 3.5);  // Desktop: Higher camera position, moved back
         }
@@ -190,8 +190,7 @@ class AvatarBuilder {
         
         // Set target based on device type
         if (window.innerWidth <= 768) {
-            this.controls.target.set(0, 0, 0);  // Mobile: center target
-            this.camera.position.set(0, 0, -50);  // Mobile: enforce camera position
+            this.controls.target.set(0, -0.4, 0);  // Mobile: centered target
         } else {
             this.controls.target.set(0, -0.4, 0);  // Desktop: target at -0.4
         }
@@ -846,10 +845,7 @@ class AvatarBuilder {
                 // Reset camera and controls to center on the model
                 // Set target based on device type
                 if (window.innerWidth <= 768) {
-                    // Mobile: Camera position enforcement - ensures camera is at correct position after loading
-                    this.controls.target.set(0, 0, 0);  // Mobile: center target
-                    this.camera.position.set(0, 0, -50);  // Mobile: enforce camera position
-                    this.controls.update();  // Update controls to apply position
+                    this.controls.target.set(0, -0.4, 0);  // Mobile: centered target
                 } else {
                     this.controls.target.set(0, -0.4, 0);  // Desktop: target at -0.4
                 }
@@ -951,10 +947,7 @@ class AvatarBuilder {
             // Reset camera and controls to center on the model
             // Set to perfect viewing position matching the desired size
             if (window.innerWidth <= 768) {
-                // Mobile: Camera position enforcement - ensures camera is at correct position after loading
-                this.controls.target.set(0, 0, 0);  // Mobile: center target
-                this.camera.position.set(0, 0, -50);  // Mobile: enforce camera position
-                this.controls.update();  // Update controls to apply position
+                this.controls.target.set(0, -0.6, 0);  // Mobile: lower target
             } else {
                 this.controls.target.set(0, -0.4, 0);  // Desktop: target at -0.4
             }
@@ -2362,13 +2355,11 @@ class AvatarBuilder {
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(container.clientWidth, container.clientHeight);
         
-        // Mobile-specific camera adjustments: zoom out to prevent cutoff
+        // Mobile-specific camera adjustments
         if (window.innerWidth <= 768) {
-            // Camera position enforcement: ensures camera is at correct position (0, 0, -50) on mobile
-            this.camera.position.set(0, 0, -50);
+            this.camera.position.set(0, -0.6, 4.5);
             if (this.controls) {
-                this.controls.target.set(0, 0, 0);  // Center target
-                this.controls.update();  // Update controls to apply position
+                this.controls.target.set(0, -0.4, 0);
             }
         } else {
             // Desktop: use higher position, moved back
