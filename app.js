@@ -13,6 +13,7 @@ class AvatarBuilder {
         this.originalModel = null;
         this.currentHat = null;
         this.currentShirt = null;
+        this.currentEyes = null;
         this.animationFrameId = null;
         this.editMode = false;
         this.transformControls = null;
@@ -73,6 +74,17 @@ class AvatarBuilder {
             'Warmup-Stealth', 'Wings', 'Wizard-Cloak-Green', 'Wizard-Cloak-Pink', 'Wizard-Cloak-Teal'
         ];
         
+        // Available eye options (matching WEARABLES/Eyes folder, sorted alphabetically)
+        this.eyeOptions = [
+            '3D', 'Angry', 'Cartoon', 'Cartoon Glossy', 'Cartoon Third Eye', 'Cartoon Third Eye Glossy',
+            'Circle-Shades', 'Crazy', 'Cyclops', 'Default', 'Determined', 'Droopy', 'Evil', 'Eyepatch', 'Floating',
+            'Happy', 'Heart', 'Laser-Blue', 'Laser-Green', 'Laser-Red', 'Meme', 'Perplexed', 'Punk',
+            'Scanner Gold', 'Scanner Red', 'Scanner Teal', 'Shades', 'Slick', 'Three', 'Tired', 'Triangles',
+            'Viper Gold', 'Viper Green', 'Viper Purple', 'Viper-Rainbow', 'Viper-Red', 'VR', 'VR-Green', 'VR-Red',
+            'Yellow-Scanner', 'Zombie', 'Zombie-Blue', 'Zombie-Green', 'Zombie-Mint', 'Zombie-Orange',
+            'Zombie-Pink', 'Zombie-Purple', 'Zombie-Red', 'Zombie-Yellow'
+        ];
+        
         this.init();
     }
 
@@ -103,6 +115,8 @@ class AvatarBuilder {
             console.log('Hat gallery setup complete');
             this.setupShirtGallery();
             console.log('Shirt gallery setup complete');
+            this.setupEyesGallery();
+            console.log('Eyes gallery setup complete');
             this.animate();
             console.log('Animation started');
         } catch (error) {
@@ -676,6 +690,48 @@ class AvatarBuilder {
         });
     }
 
+    setupEyesGallery() {
+        const gallery = document.getElementById('eyes-gallery');
+        gallery.innerHTML = '';
+
+        this.eyeOptions.forEach((eyeName) => {
+            const button = document.createElement('button');
+            button.className = 'fur-btn';
+            button.title = `Load ${eyeName}.glb eyes`;
+            
+            // Create image element
+            const img = document.createElement('img');
+            // Skip image for Default since it doesn't have a PNG
+            if (eyeName === 'Default') {
+                button.textContent = eyeName;
+            } else {
+                const imagePath = `Selection Images/Eyes/${eyeName}.png`;
+                img.src = imagePath;
+                img.alt = eyeName;
+                img.onerror = (e) => {
+                    console.warn(`Failed to load image: ${imagePath}`, e);
+                    // Fallback to text if image doesn't exist
+                    button.innerHTML = '';
+                    button.textContent = eyeName;
+                };
+                img.onload = () => {
+                    console.log(`Successfully loaded image: ${imagePath}`);
+                };
+                button.appendChild(img);
+            }
+            
+            button.addEventListener('click', () => {
+                this.loadEyes(eyeName);
+            });
+            gallery.appendChild(button);
+        });
+
+        // Remove eyes button
+        document.getElementById('remove-eyes-btn').addEventListener('click', () => {
+            this.removeEyes();
+        });
+    }
+
     async loadFurFile(furName) {
         // Load GLB file directly from the WEARABLES/Furs folder
         const fileName = `${furName}.glb`;
@@ -708,22 +764,27 @@ class AvatarBuilder {
             let previousScale = null;
             let previousHat = null;
             let previousShirt = null;
+            let previousEyes = null;
             
             if (this.model) {
-                // Save current hat and shirt before removing model
+                // Save current hat, shirt, and eyes before removing model
                 previousHat = this.currentHat;
                 previousShirt = this.currentShirt;
+                previousEyes = this.currentEyes;
                 
                 // Save previous model's transform
                 previousPosition = this.model.position.clone();
                 previousScale = this.model.scale.clone();
                 
-                // Temporarily remove hat and shirt from model before removing model
+                // Temporarily remove hat, shirt, and eyes from model before removing model
                 if (this.currentHat && this.currentHat.parent) {
                     this.currentHat.parent.remove(this.currentHat);
                 }
                 if (this.currentShirt && this.currentShirt.parent) {
                     this.currentShirt.parent.remove(this.currentShirt);
+                }
+                if (this.currentEyes && this.currentEyes.parent) {
+                    this.currentEyes.parent.remove(this.currentEyes);
                 }
                 this.scene.remove(this.model);
             }
@@ -764,6 +825,7 @@ class AvatarBuilder {
             document.getElementById('scene-panel').style.display = 'block';
             document.getElementById('hat-panel').style.display = 'block';
             document.getElementById('shirt-panel').style.display = 'block';
+            document.getElementById('eyes-panel').style.display = 'block';
             
             // Restore hat if it existed (preserve hat when switching furs)
             if (previousHat) {
@@ -787,6 +849,22 @@ class AvatarBuilder {
                 this.model.add(previousShirt);
                 this.currentShirt = previousShirt;
                 document.getElementById('remove-shirt-btn').disabled = false;
+            }
+
+            // Restore eyes if they existed (preserve eyes when switching furs)
+            if (previousEyes) {
+                // Find head bone in new model
+                const headBone = this.findHeadBone(this.model);
+                if (headBone) {
+                    headBone.add(previousEyes);
+                    this.currentEyes = previousEyes;
+                    document.getElementById('remove-eyes-btn').disabled = false;
+                } else {
+                    // If no head bone, remove the eyes
+                    this.scene.remove(previousEyes);
+                    this.currentEyes = null;
+                    document.getElementById('remove-eyes-btn').disabled = true;
+                }
             }
 
         } catch (error) {
@@ -845,6 +923,7 @@ class AvatarBuilder {
             document.getElementById('scene-panel').style.display = 'block';
             document.getElementById('hat-panel').style.display = 'block';
             document.getElementById('shirt-panel').style.display = 'block';
+            document.getElementById('eyes-panel').style.display = 'block';
             
             // Remove any existing hat when loading new fur
             if (this.currentHat) {
@@ -1950,6 +2029,120 @@ class AvatarBuilder {
         }
     }
 
+    /* -----------------------------------------------------
+       EYES LOADER
+    ----------------------------------------------------- */
+
+    async loadEyes(eyeName) {
+        if (!this.model) {
+            alert("Please load an otter fur first!");
+            return;
+        }
+
+        if (this.currentEyes?.parent) this.currentEyes.parent.remove(this.currentEyes);
+        this.currentEyes = null;
+
+        const filePath = this.encodePath("WEARABLES/Eyes", `${eyeName}.glb`);
+        const loader = new GLTFLoader();
+        
+        try {
+            const gltf = await loader.loadAsync(filePath);
+
+            const eyesGroup = new THREE.Group();
+            eyesGroup.userData.eyeName = eyeName;
+
+            this.removePlaceholdersFromScene(gltf.scene);
+
+            const meshes = this.extractWearableMeshes(gltf.scene);
+            
+            // CRITICAL FIX: Get WORLD transforms of meshes before extracting
+            // This accounts for any parent transforms in the GLB hierarchy
+            gltf.scene.updateMatrixWorld(true);
+            
+            meshes.forEach(mesh => {
+                // Get world transform before removing from GLB scene
+                const worldPos = new THREE.Vector3();
+                const worldQuat = new THREE.Quaternion();
+                const worldScale = new THREE.Vector3();
+                mesh.getWorldPosition(worldPos);
+                mesh.getWorldQuaternion(worldQuat);
+                mesh.getWorldScale(worldScale);
+                
+                // Reset mesh to origin in eyesGroup's local space
+                mesh.position.set(0, 0, 0);
+                mesh.rotation.set(0, 0, 0);
+                mesh.scale.set(1, 1, 1);
+                mesh.quaternion.set(0, 0, 0, 1);
+                
+                // Add to eyesGroup first (so we can convert world to local)
+                eyesGroup.add(mesh);
+                
+                // Convert world transform to eyesGroup's local space
+                eyesGroup.updateMatrixWorld(true);
+                const localPos = worldPos.clone();
+                const localQuat = worldQuat.clone();
+                const localScale = worldScale.clone();
+                
+                eyesGroup.worldToLocal(localPos);
+                
+                // Apply the converted local transform
+                mesh.position.copy(localPos);
+                mesh.quaternion.copy(localQuat);
+                mesh.scale.copy(localScale);
+                mesh.rotation.setFromQuaternion(localQuat);
+            });
+
+            const headBone = this.findHeadBone(this.model);
+
+            if (!headBone) {
+                console.warn("No head bone found – attaching eyes to root instead.");
+                this.model.add(eyesGroup);
+                this.currentEyes = eyesGroup;
+                document.getElementById("remove-eyes-btn").disabled = false;
+                return;
+            }
+
+            // Attach eyes to head bone (similar to hats)
+            // Use the same positioning as hats for consistency
+            eyesGroup.position.set(-0.607745, 0.000000, 0.005627);
+            eyesGroup.scale.set(1.000000, 1.000000, 1.000000);
+            eyesGroup.rotation.set(0.000000, -0.000000, -1.570796);
+            eyesGroup.quaternion.set(0.000000, -0.000000, -0.707107, 0.707107);
+            
+            // Parent directly to bone
+            headBone.add(eyesGroup);
+
+            this.currentEyes = eyesGroup;
+            document.getElementById("remove-eyes-btn").disabled = false;
+            
+            // Update object selection dropdown if edit mode is active
+            if (this.editMode) {
+                this.updateObjectSelectionDropdown();
+            }
+        } catch (error) {
+            console.error('Error loading eyes:', error);
+            alert(`Error loading ${eyeName}.glb:\n\n${error.message}\n\nMake sure the file exists in the WEARABLES/Eyes folder.`);
+        }
+    }
+
+    removeEyes() {
+        if (this.currentEyes) {
+            // Remove eyes from wherever it's parented (head bone, otter model, or scene)
+            if (this.currentEyes.parent) {
+                this.currentEyes.parent.remove(this.currentEyes);
+            } else {
+                this.scene.remove(this.currentEyes);
+            }
+            this.currentEyes = null;
+            document.getElementById('remove-eyes-btn').disabled = true;
+            
+            // Update object selection dropdown if edit mode is active
+            if (this.editMode) {
+                this.updateObjectSelectionDropdown();
+            }
+        }
+    }
+
     randomize() {
         // Randomly select a fur
         const randomFur = this.furOptions[Math.floor(Math.random() * this.furOptions.length)];
@@ -1987,6 +2180,22 @@ class AvatarBuilder {
                 // Remove shirt if one exists
                 this.removeShirt();
                 console.log('Randomizing: no shirt');
+            }
+
+            // Randomly select eyes (or no eyes)
+            const shouldHaveEyes = Math.random() > 0.1; // 90% chance of having eyes
+            
+            if (shouldHaveEyes) {
+                const randomEyes = this.eyeOptions[Math.floor(Math.random() * this.eyeOptions.length)];
+                console.log(`Randomizing: eyes = ${randomEyes}`);
+                // Small delay to ensure fur is fully loaded
+                setTimeout(() => {
+                    this.loadEyes(randomEyes);
+                }, 200);
+            } else {
+                // Remove eyes if they exist
+                this.removeEyes();
+                console.log('Randomizing: no eyes');
             }
         });
     }
@@ -2181,6 +2390,9 @@ class AvatarBuilder {
         } else if (objectType === 'shirt' && this.currentShirt) {
             targetObject = this.currentShirt;
             console.log('Selected shirt group for editing - drag the controls to move/rotate/scale');
+        } else if (objectType === 'eyes' && this.currentEyes) {
+            targetObject = this.currentEyes;
+            console.log('Selected eyes group for editing - drag the controls to move/rotate/scale');
         } else if (objectType && objectType.startsWith('hat_')) {
             // Individual hat mesh/curve
             const index = parseInt(objectType.replace('hat_', ''));
@@ -2194,6 +2406,13 @@ class AvatarBuilder {
             if (this.currentShirt && this.currentShirt.children[index]) {
                 targetObject = this.currentShirt.children[index];
                 console.log(`Selected shirt mesh/curve "${targetObject.name}" for editing`);
+            }
+        } else if (objectType && objectType.startsWith('eyes_')) {
+            // Individual eyes mesh/curve
+            const index = parseInt(objectType.replace('eyes_', ''));
+            if (this.currentEyes && this.currentEyes.children[index]) {
+                targetObject = this.currentEyes.children[index];
+                console.log(`Selected eyes mesh/curve "${targetObject.name}" for editing`);
             }
         }
         
@@ -2228,6 +2447,16 @@ class AvatarBuilder {
                 objects.push({ 
                     value: `shirt_${index}`, 
                     label: `Shirt: ${child.name || `Mesh ${index}`}` 
+                });
+            });
+        }
+        
+        if (this.currentEyes) {
+            objects.push({ value: 'eyes', label: 'Eyes (Group)' });
+            this.currentEyes.children.forEach((child, index) => {
+                objects.push({ 
+                    value: `eyes_${index}`, 
+                    label: `Eyes: ${child.name || `Mesh ${index}`}` 
                 });
             });
         }
@@ -2274,7 +2503,7 @@ class AvatarBuilder {
             // Raycast to find intersected objects
             raycaster.setFromCamera(mouse, this.camera);
             
-            // Collect all selectable objects (hat, shirt, and their children)
+            // Collect all selectable objects (hat, shirt, eyes, and their children)
             const selectableObjects = [];
             if (this.currentHat) {
                 selectableObjects.push(this.currentHat);
@@ -2296,6 +2525,16 @@ class AvatarBuilder {
                     }
                 });
             }
+            if (this.currentEyes) {
+                selectableObjects.push(this.currentEyes);
+                this.currentEyes.traverse((child) => {
+                    if (child instanceof THREE.Mesh || 
+                        child instanceof THREE.Line || 
+                        child instanceof THREE.LineSegments) {
+                        selectableObjects.push(child);
+                    }
+                });
+            }
             
             const intersects = raycaster.intersectObjects(selectableObjects, true);
             
@@ -2305,15 +2544,15 @@ class AvatarBuilder {
                 let targetObject = selected;
                 
                 // If clicked object is a child, use it directly; otherwise use the group
-                if (selected.parent === this.currentHat || selected.parent === this.currentShirt) {
+                if (selected.parent === this.currentHat || selected.parent === this.currentShirt || selected.parent === this.currentEyes) {
                     targetObject = selected;
-                } else if (selected === this.currentHat || selected === this.currentShirt) {
+                } else if (selected === this.currentHat || selected === this.currentShirt || selected === this.currentEyes) {
                     targetObject = selected;
                 } else {
                     // Find the parent group
                     let parent = selected.parent;
                     while (parent) {
-                        if (parent === this.currentHat || parent === this.currentShirt) {
+                        if (parent === this.currentHat || parent === this.currentShirt || parent === this.currentEyes) {
                             targetObject = selected; // Use the clicked mesh/curve
                             break;
                         }
@@ -2413,6 +2652,10 @@ class AvatarBuilder {
             this.currentShirt = null;
             const removeShirtBtn = document.getElementById('remove-shirt-btn');
             if (removeShirtBtn) removeShirtBtn.disabled = true;
+        } else if (objectToDelete === this.currentEyes) {
+            this.currentEyes = null;
+            const removeEyesBtn = document.getElementById('remove-eyes-btn');
+            if (removeEyesBtn) removeEyesBtn.disabled = true;
         }
         
         this.selectedObject = null;
@@ -2436,12 +2679,16 @@ class AvatarBuilder {
         if (this.currentShirt) {
             this.currentShirt.updateMatrixWorld();
         }
+        if (this.currentEyes) {
+            this.currentEyes.updateMatrixWorld();
+        }
         
         const state = {
             action: action,
             timestamp: Date.now(),
             hat: this.currentHat ? this.serializeObject(this.currentHat) : null,
             shirt: this.currentShirt ? this.serializeObject(this.currentShirt) : null,
+            eyes: this.currentEyes ? this.serializeObject(this.currentEyes) : null,
             deletedObject: deletedObject,
             deletedObjectParent: deletedObjectParent,
             deletedObjectIndex: deletedObjectIndex
@@ -2464,7 +2711,8 @@ class AvatarBuilder {
         
         console.log(`State saved: ${action}`, {
             hat: state.hat ? `${state.hat.position.x.toFixed(3)}, ${state.hat.position.y.toFixed(3)}, ${state.hat.position.z.toFixed(3)}` : 'null',
-            shirt: state.shirt ? `${state.shirt.position.x.toFixed(3)}, ${state.shirt.position.y.toFixed(3)}, ${state.shirt.position.z.toFixed(3)}` : 'null'
+            shirt: state.shirt ? `${state.shirt.position.x.toFixed(3)}, ${state.shirt.position.y.toFixed(3)}, ${state.shirt.position.z.toFixed(3)}` : 'null',
+            eyes: state.eyes ? `${state.eyes.position.x.toFixed(3)}, ${state.eyes.position.y.toFixed(3)}, ${state.eyes.position.z.toFixed(3)}` : 'null'
         });
         
         // Also save to localStorage for persistence across page refreshes
@@ -2476,7 +2724,8 @@ class AvatarBuilder {
         try {
             const positions = {
                 hats: {},
-                shirts: {}
+                shirts: {},
+                eyes: {}
             };
             
             // Save hat position if it exists
@@ -2580,6 +2829,72 @@ class AvatarBuilder {
                 }
             }
             
+            // Save eyes position if it exists
+            if (this.currentEyes) {
+                const eyeName = this.getEyeName();
+                if (eyeName) {
+                    // Get world position if parented to bone, otherwise use local
+                    let pos, rot, scale, quat;
+                    if (this.currentEyes.parent && this.currentEyes.parent.type === 'Bone') {
+                        const worldPos = new THREE.Vector3();
+                        const worldQuat = new THREE.Quaternion();
+                        const worldScale = new THREE.Vector3();
+                        this.currentEyes.getWorldPosition(worldPos);
+                        this.currentEyes.getWorldQuaternion(worldQuat);
+                        this.currentEyes.getWorldScale(worldScale);
+                        pos = { x: worldPos.x, y: worldPos.y, z: worldPos.z };
+                        quat = { x: worldQuat.x, y: worldQuat.y, z: worldQuat.z, w: worldQuat.w };
+                        scale = { x: worldScale.x, y: worldScale.y, z: worldScale.z };
+                        rot = { x: this.currentEyes.rotation.x, y: this.currentEyes.rotation.y, z: this.currentEyes.rotation.z };
+                    } else {
+                        pos = { x: this.currentEyes.position.x, y: this.currentEyes.position.y, z: this.currentEyes.position.z };
+                        rot = { x: this.currentEyes.rotation.x, y: this.currentEyes.rotation.y, z: this.currentEyes.rotation.z };
+                        scale = { x: this.currentEyes.scale.x, y: this.currentEyes.scale.y, z: this.currentEyes.scale.z };
+                        quat = { x: this.currentEyes.quaternion.x, y: this.currentEyes.quaternion.y, z: this.currentEyes.quaternion.z, w: this.currentEyes.quaternion.w };
+                    }
+                    const eyeData = { position: pos, rotation: rot, scale: scale, quaternion: quat, children: [] };
+                    
+                    // Save all children (meshes, curves, lines) positions
+                    this.currentEyes.children.forEach((child, index) => {
+                        if (child instanceof THREE.Mesh || 
+                            child instanceof THREE.Line || 
+                            child instanceof THREE.LineSegments ||
+                            child instanceof THREE.Group) {
+                            child.updateMatrixWorld();
+                            let childPos, childRot, childScale, childQuat;
+                            if (this.currentEyes.parent && this.currentEyes.parent.type === 'Bone') {
+                                const worldPos = new THREE.Vector3();
+                                const worldQuat = new THREE.Quaternion();
+                                const worldScale = new THREE.Vector3();
+                                child.getWorldPosition(worldPos);
+                                child.getWorldQuaternion(worldQuat);
+                                child.getWorldScale(worldScale);
+                                childPos = { x: worldPos.x, y: worldPos.y, z: worldPos.z };
+                                childQuat = { x: worldQuat.x, y: worldQuat.y, z: worldQuat.z, w: worldQuat.w };
+                                childScale = { x: worldScale.x, y: worldScale.y, z: worldScale.z };
+                                childRot = { x: child.rotation.x, y: child.rotation.y, z: child.rotation.z };
+                            } else {
+                                childPos = { x: child.position.x, y: child.position.y, z: child.position.z };
+                                childRot = { x: child.rotation.x, y: child.rotation.y, z: child.rotation.z };
+                                childScale = { x: child.scale.x, y: child.scale.y, z: child.scale.z };
+                                childQuat = { x: child.quaternion.x, y: child.quaternion.y, z: child.quaternion.z, w: child.quaternion.w };
+                            }
+                            eyeData.children.push({
+                                name: child.name,
+                                index: index,
+                                position: childPos,
+                                rotation: childRot,
+                                scale: childScale,
+                                quaternion: childQuat,
+                                visible: child.visible
+                            });
+                        }
+                    });
+                    
+                    positions.eyes[eyeName] = eyeData;
+                }
+            }
+            
             localStorage.setItem(this.storageKey, JSON.stringify(positions));
             console.log('Positions saved to localStorage');
         } catch (error) {
@@ -2598,6 +2913,8 @@ class AvatarBuilder {
                 return positions.hats[name];
             } else if (type === 'shirt' && positions.shirts && positions.shirts[name]) {
                 return positions.shirts[name];
+            } else if (type === 'eyes' && positions.eyes && positions.eyes[name]) {
+                return positions.eyes[name];
             }
             return null;
         } catch (error) {
@@ -2618,6 +2935,14 @@ class AvatarBuilder {
     getShirtName() {
         if (this.currentShirt && this.currentShirt.userData && this.currentShirt.userData.shirtName) {
             return this.currentShirt.userData.shirtName;
+        }
+        return null;
+    }
+    
+    // Get current eye name
+    getEyeName() {
+        if (this.currentEyes && this.currentEyes.userData && this.currentEyes.userData.eyeName) {
+            return this.currentEyes.userData.eyeName;
         }
         return null;
     }
@@ -2645,11 +2970,13 @@ class AvatarBuilder {
         if (saveFeedback) {
             const hatName = this.getHatName();
             const shirtName = this.getShirtName();
+            const eyeName = this.getEyeName();
             let message = 'Positions saved!';
-            if (hatName || shirtName) {
+            if (hatName || shirtName || eyeName) {
                 message += ' Saved positions for:';
                 if (hatName) message += ` ${hatName}`;
                 if (shirtName) message += ` ${shirtName}`;
+                if (eyeName) message += ` ${eyeName}`;
             }
             saveFeedback.textContent = message;
             saveFeedback.style.display = 'block';
@@ -2762,7 +3089,7 @@ class AvatarBuilder {
                 this.scene.add(deletedObj);
             }
             
-            // Restore hat/shirt references if needed
+            // Restore hat/shirt/eyes references if needed
             if (deletedObj === this.currentHat || (this.currentHat === null && deletedObj.name && deletedObj.name.includes('hat'))) {
                 // Check if this was the hat
                 if (deletedObj === currentState.hat || !this.currentHat) {
@@ -2779,6 +3106,14 @@ class AvatarBuilder {
                     if (removeShirtBtn) removeShirtBtn.disabled = false;
                 }
             }
+            if (deletedObj === this.currentEyes || (this.currentEyes === null && deletedObj.name && deletedObj.name.includes('eye'))) {
+                // Check if this was the eyes
+                if (deletedObj === currentState.eyes || !this.currentEyes) {
+                    this.currentEyes = deletedObj;
+                    const removeEyesBtn = document.getElementById('remove-eyes-btn');
+                    if (removeEyesBtn) removeEyesBtn.disabled = false;
+                }
+            }
             
             console.log(`Restored deleted object: ${deletedObj.name || 'object'}`);
         }
@@ -2791,6 +3126,11 @@ class AvatarBuilder {
         // Restore shirt state
         if (state.shirt && this.currentShirt) {
             this.restoreObject(this.currentShirt, state.shirt);
+        }
+        
+        // Restore eyes state
+        if (state.eyes && this.currentEyes) {
+            this.restoreObject(this.currentEyes, state.eyes);
         }
         
         console.log(`Undo: ${state.action}`);
@@ -2828,7 +3168,7 @@ class AvatarBuilder {
                 this.scene.remove(deletedObj);
             }
             
-            // Clear hat/shirt references if needed
+            // Clear hat/shirt/eyes references if needed
             if (deletedObj === this.currentHat) {
                 this.currentHat = null;
                 const removeHatBtn = document.getElementById('remove-hat-btn');
@@ -2838,6 +3178,11 @@ class AvatarBuilder {
                 this.currentShirt = null;
                 const removeShirtBtn = document.getElementById('remove-shirt-btn');
                 if (removeShirtBtn) removeShirtBtn.disabled = true;
+            }
+            if (deletedObj === this.currentEyes) {
+                this.currentEyes = null;
+                const removeEyesBtn = document.getElementById('remove-eyes-btn');
+                if (removeEyesBtn) removeEyesBtn.disabled = true;
             }
             
             // Clear selection if it was the selected object
@@ -2859,6 +3204,11 @@ class AvatarBuilder {
         // Restore shirt state
         if (state.shirt && this.currentShirt) {
             this.restoreObject(this.currentShirt, state.shirt);
+        }
+        
+        // Restore eyes state
+        if (state.eyes && this.currentEyes) {
+            this.restoreObject(this.currentEyes, state.eyes);
         }
         
         console.log(`Redo: ${state.action}`);
