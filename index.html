@@ -14,10 +14,31 @@
                     <img src="fishy-log.png.png" alt="Ottvatar Logo" class="logo">
                     <h1>Ottvatar Viewer</h1>
                 </div>
-                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
-                    <span class="theme-icon">🌙</span>
-                </button>
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input 
+                            type="number" 
+                            id="nft-search-input" 
+                            placeholder="NFT # (1-2222)" 
+                            min="1" 
+                            max="2222"
+                            style="width: 140px; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary); font-family: 'PORKYS', sans-serif; font-size: 0.875rem;"
+                        />
+                        <button 
+                            id="nft-search-btn" 
+                            class="btn btn-primary"
+                            style="padding: 0.5rem 1rem; font-size: 0.875rem; white-space: nowrap;"
+                            title="Load NFT traits"
+                        >
+                            🔍 Load
+                        </button>
+                    </div>
+                    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                </div>
             </div>
+            <div id="nft-search-error" style="margin-top: 0.5rem; color: var(--warning); display: none; font-size: 0.875rem; text-align: center;"></div>
             <p>View and customize your otter avatar GLB files</p>
         </header>
 
@@ -39,27 +60,6 @@
                 <button id="randomize-btn" class="randomize-btn" title="Randomize fur and hat">
                     🎲 Randomize
                 </button>
-                
-                <div class="search-container" style="margin: 1rem 0; padding: 0 1rem;">
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <input 
-                            type="number" 
-                            id="nft-search-input" 
-                            placeholder="Enter NFT # (1-2222)" 
-                            min="1" 
-                            max="2222"
-                            style="flex: 1; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); font-family: 'PORKYS', sans-serif;"
-                        />
-                        <button 
-                            id="nft-search-btn" 
-                            class="btn btn-primary"
-                            style="padding: 0.75rem 1.5rem;"
-                        >
-                            🔍 Load NFT
-                        </button>
-                    </div>
-                    <div id="nft-search-error" style="margin-top: 0.5rem; color: var(--warning); display: none; font-size: 0.875rem;"></div>
-                </div>
                 
                 <div class="sidebar">
                     <div class="panel">
