@@ -1016,32 +1016,48 @@ header p {
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
     header {
-        padding: 1rem 1rem;
+        padding: 0.75rem 1rem;
         overflow: visible;
+        min-height: auto;
+        height: auto;
     }
 
     .header-content {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.75rem;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
     }
     
     .logo-title {
-        width: 100%;
+        width: auto;
         display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
+        flex-shrink: 0;
+        order: 1;
     }
     
     .logo {
         display: block !important;
         visibility: visible !important;
+        width: 40px !important;
+        height: 40px !important;
     }
     
     header h1 {
-        font-size: 1.5rem;
+        font-size: 1.25rem !important;
         display: block !important;
         visibility: visible !important;
+        margin: 0 !important;
+        white-space: nowrap;
+    }
+    
+    .header-controls {
+        order: 2;
+        flex: 1;
+        min-width: 0;
+        justify-content: flex-end;
     }
 
     header p {
@@ -1137,36 +1153,48 @@ header p {
 
 @media (max-width: 480px) {
     header {
-        padding: 0.75rem 0.75rem;
+        padding: 0.5rem 0.75rem;
         overflow: visible;
+        min-height: auto;
+        height: auto;
     }
     
     .header-content {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row;
+        align-items: center;
         gap: 0.5rem;
+        flex-wrap: wrap;
     }
     
     .logo-title {
-        width: 100%;
+        width: auto;
         display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
+        flex-shrink: 0;
+        order: 1;
+        gap: 0.5rem;
     }
     
     .logo {
         display: block !important;
         visibility: visible !important;
+        width: 36px !important;
+        height: 36px !important;
     }
     
     header h1 {
-        font-size: 1.25rem;
+        font-size: 1.1rem !important;
         display: block !important;
         visibility: visible !important;
+        margin: 0 !important;
+        white-space: nowrap;
     }
     
     .header-controls {
-        width: 100%;
+        order: 2;
+        flex: 1;
+        min-width: 0;
         justify-content: flex-end;
         flex-wrap: wrap;
     }
