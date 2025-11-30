@@ -2106,6 +2106,10 @@ class AvatarBuilder {
 
             const eyesGroup = new THREE.Group();
             eyesGroup.userData.eyeName = eyeName;
+            
+            // CRITICAL: Store reference to GLB scene to prevent material garbage collection
+            // This ensures special materials (like polarized) remain in memory
+            eyesGroup.userData.gltfScene = gltf.scene;
 
             this.removePlaceholdersFromScene(gltf.scene);
 
@@ -2125,10 +2129,42 @@ class AvatarBuilder {
                 mesh.getWorldQuaternion(worldQuat);
                 mesh.getWorldScale(worldScale);
                 
-                // Ensure materials are properly preserved
-                // Materials should already be attached to the mesh from the GLB loader
-                // Just verify they exist and are properly set
-                if (!mesh.material) {
+                // CRITICAL: Preserve all material properties, especially for special materials like polarized
+                // Ensure materials are properly preserved and not lost during extraction
+                if (mesh.material) {
+                    // Handle material arrays (multiple materials per mesh)
+                    if (Array.isArray(mesh.material)) {
+                        // Ensure all materials in the array are preserved
+                        mesh.material = mesh.material.map(mat => {
+                            if (mat) {
+                                // Ensure material is properly referenced and not lost
+                                // Don't clone - keep original reference to preserve shaders and special properties
+                                return mat;
+                            }
+                            return mat;
+                        });
+                    } else {
+                        // Single material - ensure it's properly referenced
+                        // Keep original material reference to preserve all properties (shaders, textures, etc.)
+                        if (!mesh.material.isMaterial) {
+                            console.warn('Material is not a proper Three.js material:', mesh.name, mesh.material);
+                        }
+                    }
+                    
+                    // Ensure material needsUpdate is set if needed (for shader materials)
+                    if (mesh.material.needsUpdate !== undefined) {
+                        mesh.material.needsUpdate = true;
+                    }
+                    
+                    // For material arrays, ensure each material is updated
+                    if (Array.isArray(mesh.material)) {
+                        mesh.material.forEach(mat => {
+                            if (mat && mat.needsUpdate !== undefined) {
+                                mat.needsUpdate = true;
+                            }
+                        });
+                    }
+                } else {
                     console.warn('Mesh missing material:', mesh.name);
                 }
                 
