@@ -159,7 +159,8 @@ class AvatarBuilder {
     setupScene() {
         // Scene
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0x1a1a1a);
+        // Start with light gradient background
+        this.createGradientBackground(true);
 
         // Camera
         this.camera = new THREE.PerspectiveCamera(
@@ -461,14 +462,11 @@ class AvatarBuilder {
                 customColorGroup.style.display = 'none';
                 break;
             case 'gradient-dark':
-                // Create gradient background with fog
-                this.scene.background = new THREE.Color(0x0a0a0a);
-                this.scene.fog = new THREE.Fog(0x0a0a0a, 10, 50);
+                this.createGradientBackground(false);
                 customColorGroup.style.display = 'none';
                 break;
             case 'gradient-light':
-                this.scene.background = new THREE.Color(0xe8e8e8);
-                this.scene.fog = new THREE.Fog(0xe8e8e8, 10, 50);
+                this.createGradientBackground(true);
                 customColorGroup.style.display = 'none';
                 break;
             case 'blue-sky':
@@ -583,7 +581,7 @@ class AvatarBuilder {
                 this.setBackground(e.target.value);
             });
             // Initialize with dark studio
-            this.setBackground('dark');
+            this.setBackground('gradient-light');
         }
         
         // Custom color input
