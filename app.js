@@ -2404,6 +2404,19 @@ class AvatarBuilder {
         errorDiv.style.display = 'none';
         errorDiv.textContent = '';
         
+        // Show loading screen
+        const loading = document.getElementById('loading');
+        const placeholder = document.getElementById('placeholder');
+        const loadingStartTime = Date.now();
+        const minLoadingTime = 3000; // 3 seconds minimum
+        
+        if (loading) {
+            loading.style.display = 'block';
+        }
+        if (placeholder) {
+            placeholder.style.display = 'none';
+        }
+        
         try {
             // Load the metadata JSON file
             const metadataPath = `metadata/${nftNumber}.json`;
@@ -2449,45 +2462,89 @@ class AvatarBuilder {
                     throw new Error(`Fur "${traits.fur}" not found in available options`);
                 }
                 
-                // Load fur first (required base)
-                await this.loadFurFile(traits.fur);
+                // Load fur first (required base) - don't let it manage loading screen
+                await this.loadFurFile(traits.fur, false, false);
                 
-                // Then load other traits after a short delay to ensure fur is loaded
-                setTimeout(() => {
-                    if (traits.hat) {
-                        if (this.hatOptions.includes(traits.hat)) {
-                            this.loadHat(traits.hat).catch(err => {
-                                console.warn(`Could not load hat: ${traits.hat}`, err);
-                            });
-                        } else {
-                            console.warn(`Hat "${traits.hat}" not found in available options`);
-                        }
+                // Create array of promises for all loading operations
+                const loadPromises = [];
+                
+                // Load hat if present
+                if (traits.hat) {
+                    if (this.hatOptions.includes(traits.hat)) {
+                        loadPromises.push(
+                            new Promise(resolve => {
+                                setTimeout(() => {
+                                    this.loadHat(traits.hat).then(resolve).catch(err => {
+                                        console.warn(`Could not load hat: ${traits.hat}`, err);
+                                        resolve(); // Resolve anyway to not block other loads
+                                    });
+                                }, 200);
+                            })
+                        );
+                    } else {
+                        console.warn(`Hat "${traits.hat}" not found in available options`);
                     }
+                }
+                
+                // Load shirt if present
+                if (traits.shirt) {
+                    if (this.shirtOptions.includes(traits.shirt)) {
+                        loadPromises.push(
+                            new Promise(resolve => {
+                                setTimeout(() => {
+                                    this.loadShirt(traits.shirt).then(resolve).catch(err => {
+                                        console.warn(`Could not load shirt: ${traits.shirt}`, err);
+                                        resolve(); // Resolve anyway to not block other loads
+                                    });
+                                }, 300);
+                            })
+                        );
+                    } else {
+                        console.warn(`Shirt "${traits.shirt}" not found in available options`);
+                    }
+                }
+                
+                // Load eyes if present
+                if (traits.eyes) {
+                    if (this.eyeOptions.includes(traits.eyes)) {
+                        loadPromises.push(
+                            new Promise(resolve => {
+                                setTimeout(() => {
+                                    this.loadEyes(traits.eyes).then(resolve).catch(err => {
+                                        console.warn(`Could not load eyes: ${traits.eyes}`, err);
+                                        resolve(); // Resolve anyway to not block other loads
+                                    });
+                                }, 400);
+                            })
+                        );
+                    } else {
+                        console.warn(`Eyes "${traits.eyes}" not found in available options`);
+                    }
+                }
+                
+                // Wait for all wearables to load
+                Promise.all(loadPromises).then(() => {
+                    // Ensure loading screen shows for at least 3 seconds
+                    const elapsedTime = Date.now() - loadingStartTime;
+                    const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
                     
                     setTimeout(() => {
-                        if (traits.shirt) {
-                            if (this.shirtOptions.includes(traits.shirt)) {
-                                this.loadShirt(traits.shirt).catch(err => {
-                                    console.warn(`Could not load shirt: ${traits.shirt}`, err);
-                                });
-                            } else {
-                                console.warn(`Shirt "${traits.shirt}" not found in available options`);
-                            }
+                        // Hide loading screen after all wearables are loaded AND minimum time has passed
+                        if (loading) {
+                            loading.style.display = 'none';
                         }
-                        
-                        setTimeout(() => {
-                            if (traits.eyes) {
-                                if (this.eyeOptions.includes(traits.eyes)) {
-                                    this.loadEyes(traits.eyes).catch(err => {
-                                        console.warn(`Could not load eyes: ${traits.eyes}`, err);
-                                    });
-                                } else {
-                                    console.warn(`Eyes "${traits.eyes}" not found in available options`);
-                                }
-                            }
-                        }, 100);
-                    }, 100);
-                }, 200);
+                    }, remainingTime);
+                }).catch((error) => {
+                    console.error('Error loading wearables:', error);
+                    // Still hide loading screen after minimum time even on error
+                    const elapsedTime = Date.now() - loadingStartTime;
+                    const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+                    setTimeout(() => {
+                        if (loading) {
+                            loading.style.display = 'none';
+                        }
+                    }, remainingTime);
+                });
             } else {
                 throw new Error('No Fur trait found in metadata');
             }
@@ -2513,8 +2570,16 @@ class AvatarBuilder {
             
         } catch (error) {
             console.error('Error loading NFT traits:', error);
+            // Hide loading screen on error after minimum time
+            const elapsedTime = Date.now() - loadingStartTime;
+            const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+            setTimeout(() => {
+                if (loading) {
+                    loading.style.display = 'none';
+                }
+            }, remainingTime);
             this.showNFTError(`Error loading NFT #${nftNumber}: ${error.message}`);
-    }
+        }
     }
     
     showNFTError(message) {
