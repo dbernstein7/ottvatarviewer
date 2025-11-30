@@ -1024,39 +1024,59 @@ header p {
     }
     
     header {
-        padding: 0.75rem 1rem;
-        padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+        padding: 0.5rem 0.75rem;
+        padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
     }
 
     header h1 {
-        font-size: 1.25rem;
-        line-height: 1.2;
+        font-size: 1.1rem;
+        line-height: 1.1;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         max-width: 100%;
+        margin: 0;
     }
 
     header p {
-        font-size: 0.8rem;
-        margin-top: 0.25rem;
+        font-size: 0.75rem;
+        margin-top: 0.15rem;
+        line-height: 1.2;
     }
     
     .logo-title {
-        gap: 0.5rem;
+        gap: 0.4rem;
         flex: 1 1 auto;
         min-width: 0;
     }
     
     .logo {
-        width: 36px;
-        height: 36px;
+        width: 32px;
+        height: 32px;
         flex-shrink: 0;
     }
     
     .header-controls {
         flex-shrink: 0;
         flex-wrap: nowrap;
+        gap: 0.4rem !important;
+    }
+    
+    .nft-search-input {
+        width: 100px;
+        padding: 0.35rem 0.5rem;
+        font-size: 0.7rem;
+    }
+    
+    .nft-search-btn {
+        padding: 0.35rem 0.65rem;
+        font-size: 0.7rem;
+    }
+    
+    .theme-toggle {
+        width: 36px;
+        height: 36px;
+        font-size: 1.2rem;
     }
     
     .viewer-container {
@@ -1065,7 +1085,7 @@ header p {
     }
     
     #canvas-container {
-        height: calc(100vh - 180px);
+        height: calc(100vh - 160px);
         min-height: 300px;
     }
     
@@ -1134,17 +1154,7 @@ header p {
         font-size: 1rem;
     }
     
-    /* Mobile - Smaller search bar */
-    .nft-search-input {
-        width: 140px;
-        padding: 0.4rem 0.5rem;
-        font-size: 0.75rem;
-    }
-    
-    .nft-search-btn {
-        padding: 0.4rem 0.75rem;
-        font-size: 0.75rem;
-    }
+    /* Mobile - Smaller search bar (already defined above) */
     
     .header-controls {
         gap: 0.5rem !important;
@@ -1172,61 +1182,59 @@ header p {
 
 @media (max-width: 480px) {
     header {
-        padding: 0.5rem 0.75rem;
-        padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+        padding: 0.4rem 0.6rem;
+        padding-top: max(0.4rem, env(safe-area-inset-top, 0px));
     }
 
     header h1 {
-        font-size: 1.1rem;
-        line-height: 1.2;
+        font-size: 1rem;
+        line-height: 1.1;
     }
     
     header p {
-        font-size: 0.75rem;
-        margin-top: 0.25rem;
+        font-size: 0.7rem;
+        margin-top: 0.1rem;
+        line-height: 1.2;
     }
     
     .logo-title {
-        gap: 0.4rem;
+        gap: 0.35rem;
     }
     
     .logo {
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
     }
     
     /* Extra small mobile - Even smaller search bar */
     .nft-search-input {
-        width: 120px;
-        padding: 0.35rem 0.4rem;
-        font-size: 0.7rem;
+        width: 85px;
+        padding: 0.3rem 0.35rem;
+        font-size: 0.65rem;
     }
     
     .nft-search-btn {
-        padding: 0.35rem 0.6rem;
-        font-size: 0.7rem;
-    }
-    
-    .nft-search-btn {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.65rem;
         min-width: auto;
     }
 
     .theme-toggle {
-        width: 36px;
-        height: 36px;
-        font-size: 1.1rem;
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
     }
     
     .header-controls {
-        gap: 0.4rem !important;
+        gap: 0.3rem !important;
     }
     
-    .nft-search-input {
-        width: 100px;
+    .nft-search-group {
+        gap: 0.3rem !important;
     }
     
     #canvas-container {
-        height: calc(100vh - 160px);
+        height: calc(100vh - 140px);
         min-height: 250px;
     }
     
