@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
-import { PMREMGenerator } from 'three/addons/utils/PMREMGenerator.js';
 
 class AvatarBuilder {
     constructor() {
@@ -104,6 +103,13 @@ class AvatarBuilder {
 
     async init() {
         try {
+            // Check if running from file:// protocol (won't work with ES6 modules)
+            if (window.location.protocol === 'file:') {
+                console.error('⚠️ App is being opened as a file:// URL. ES6 modules require a web server.');
+                alert('⚠️ This app must be run from a web server!\n\nPlease:\n1. Run "npm start" in the terminal, OR\n2. Use a local server like "python -m http.server" or "npx serve ."\n\nOpening as file:// will not work due to browser security restrictions.');
+                return;
+            }
+            
             this.setupTheme();
             this.setupScene();
             // Note: Reference file loading removed - using default transforms
@@ -179,18 +185,7 @@ class AvatarBuilder {
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
-        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        this.renderer.toneMappingExposure = 1.0;
         container.appendChild(this.renderer.domElement);
-        
-        // Setup environment map for reflective materials (like polarized lenses)
-        // Make this non-blocking - if it fails, the app should still work
-        // Temporarily disabled to fix loading issue
-        // try {
-        //     this.setupEnvironmentMap();
-        // } catch (error) {
-        //     console.warn('Environment map setup failed, continuing without it:', error);
-        // }
 
         // Controls
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -284,70 +279,6 @@ class AvatarBuilder {
 
         // Handle resize
         window.addEventListener('resize', () => this.onWindowResize());
-    }
-
-    setupEnvironmentMap() {
-        try {
-            // Create a simple environment map for reflective materials
-            // This is essential for materials with high metallic/roughness like polarized lenses
-            if (!PMREMGenerator) {
-                console.warn('PMREMGenerator not available, skipping environment map setup');
-                return;
-            }
-            
-            const pmremGenerator = new PMREMGenerator(this.renderer);
-            pmremGenerator.compileEquirectangularShader();
-            
-            // Create a simple environment map using a color gradient
-            // This provides something for reflective materials to reflect
-            const envScene = new THREE.Scene();
-            
-            // Add a gradient background using a large sphere
-            const envGeometry = new THREE.SphereGeometry(100, 32, 32);
-            const envMaterial = new THREE.MeshBasicMaterial({
-                side: THREE.BackSide,
-                color: 0xffffff
-            });
-            
-            // Create a gradient texture
-            const size = 512;
-            const canvas = document.createElement('canvas');
-            canvas.width = size;
-            canvas.height = size;
-            const context = canvas.getContext('2d');
-            
-            // Create a gradient from light blue (sky) to white (horizon)
-            const gradient = context.createLinearGradient(0, 0, 0, size);
-            gradient.addColorStop(0, '#87CEEB'); // Sky blue
-            gradient.addColorStop(0.5, '#E0F6FF'); // Light blue
-            gradient.addColorStop(1, '#FFFFFF'); // White
-            
-            context.fillStyle = gradient;
-            context.fillRect(0, 0, size, size);
-            
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.mapping = THREE.EquirectangularReflectionMapping;
-            envMaterial.map = texture;
-            
-            const envMesh = new THREE.Mesh(envGeometry, envMaterial);
-            envScene.add(envMesh);
-            
-            // Generate PMREM environment map
-            const envMap = pmremGenerator.fromScene(envScene, 0.04).texture;
-            
-            // Set as scene environment (for reflections on materials)
-            // Keep the dark background for the scene itself
-            this.scene.environment = envMap;
-            
-            // Cleanup
-            pmremGenerator.dispose();
-            envGeometry.dispose();
-            envMaterial.dispose();
-            texture.dispose();
-        } catch (error) {
-            console.error('Error setting up environment map:', error);
-            // Don't break the app if environment map setup fails
-        }
     }
 
     setupDiscreteZoom() {
@@ -1342,6 +1273,7 @@ class AvatarBuilder {
         this.currentHat = null;
 
         const filePath = this.encodePath("WEARABLES/Hats", `${hatName}.glb`);
+        console.log(`Loading hat from path: ${filePath}`);
         const loader = new GLTFLoader();
         
         try {
@@ -1459,7 +1391,9 @@ class AvatarBuilder {
             this.requestRender(); // Scene changed, request render
         } catch (error) {
             console.error('Error loading hat:', error);
-            alert(`Error loading ${hatName}.glb:\n\n${error.message}\n\nMake sure the file exists in the WEARABLES/Hats folder.`);
+            console.error('Attempted path:', filePath);
+            console.error('Full error details:', error);
+            alert(`Error loading ${hatName}.glb:\n\nPath: ${filePath}\n\nError: ${error.message}\n\nMake sure:\n1. The file exists in the WEARABLES/Hats folder\n2. You're running the app from a web server (not file://)\n3. Check the browser console for more details`);
         }
     }
 
@@ -2019,30 +1953,6 @@ class AvatarBuilder {
         return meshes;
     }
 
-    extractEyeMeshes(scene) {
-        // For eye wearables, we want ALL meshes (don't filter out "eye" meshes)
-        // This ensures all materials and meshes from the GLB are included
-        const meshes = [];
-        scene.traverse((child) => {
-            if (!child.isMesh) return;
-
-            const n = child.name.toLowerCase();
-            // Only filter out body parts that aren't eyes (body, teeth, tongue, nose, whisker)
-            // Note: We DON'T filter out "eye" here because eye wearables contain eye meshes
-            const isBodyPart =
-                n.includes("body") ||
-                n.includes("teeth") ||
-                n.includes("tongue") ||
-                n.includes("nose") ||
-                n.includes("whisker");
-
-            if (!isBodyPart) {
-                meshes.push(child);
-            }
-        });
-        return meshes;
-    }
-
     removeHat() {
         if (this.currentHat) {
             // Remove hat from wherever it's parented (head bone, otter model, or scene)
@@ -2076,6 +1986,7 @@ class AvatarBuilder {
         this.currentShirt = null;
 
         const filePath = this.encodePath("WEARABLES/Shirts", `${shirtName}.glb`);
+        console.log(`Loading shirt from path: ${filePath}`);
         const loader = new GLTFLoader();
         
         try {
@@ -2138,7 +2049,9 @@ class AvatarBuilder {
             }
         } catch (error) {
             console.error('Error loading shirt:', error);
-            alert(`Error loading ${shirtName}.glb:\n\n${error.message}\n\nMake sure the file exists in the WEARABLES/Shirts folder.`);
+            console.error('Attempted path:', filePath);
+            console.error('Full error details:', error);
+            alert(`Error loading ${shirtName}.glb:\n\nPath: ${filePath}\n\nError: ${error.message}\n\nMake sure:\n1. The file exists in the WEARABLES/Shirts folder\n2. You're running the app from a web server (not file://)\n3. Check the browser console for more details`);
         }
     }
 
@@ -2175,6 +2088,7 @@ class AvatarBuilder {
         this.currentEyes = null;
 
         const filePath = this.encodePath("WEARABLES/Eyes", `${eyeName}.glb`);
+        console.log(`Loading eyes from path: ${filePath}`);
         const loader = new GLTFLoader();
         
         try {
@@ -2182,15 +2096,10 @@ class AvatarBuilder {
 
             const eyesGroup = new THREE.Group();
             eyesGroup.userData.eyeName = eyeName;
-            
-            // CRITICAL: Store reference to GLB scene to prevent material garbage collection
-            // This ensures special materials (like polarized) remain in memory
-            eyesGroup.userData.gltfScene = gltf.scene;
 
             this.removePlaceholdersFromScene(gltf.scene);
 
-            // Use extractEyeMeshes instead of extractWearableMeshes to include all meshes
-            const meshes = this.extractEyeMeshes(gltf.scene);
+            const meshes = this.extractWearableMeshes(gltf.scene);
             
             // CRITICAL FIX: Get WORLD transforms of meshes before extracting
             // This accounts for any parent transforms in the GLB hierarchy
@@ -2204,53 +2113,6 @@ class AvatarBuilder {
                 mesh.getWorldPosition(worldPos);
                 mesh.getWorldQuaternion(worldQuat);
                 mesh.getWorldScale(worldScale);
-                
-                // CRITICAL: Preserve all material properties, especially for special materials like polarized
-                // Ensure materials are properly preserved and not lost during extraction
-                if (mesh.material) {
-                    // Handle material arrays (multiple materials per mesh)
-                    if (Array.isArray(mesh.material)) {
-                        // Ensure all materials in the array are preserved
-                        mesh.material = mesh.material.map(mat => {
-                            if (mat) {
-                                // Ensure material is properly referenced and not lost
-                                // Don't clone - keep original reference to preserve shaders and special properties
-                                // Ensure environment map is enabled for reflective materials
-                                if (mat.envMapIntensity === undefined || mat.envMapIntensity === 0) {
-                                    mat.envMapIntensity = 1.0; // Enable environment mapping
-                                }
-                                return mat;
-                            }
-                            return mat;
-                        });
-                    } else {
-                        // Single material - ensure it's properly referenced
-                        // Keep original material reference to preserve all properties (shaders, textures, etc.)
-                        if (!mesh.material.isMaterial) {
-                            console.warn('Material is not a proper Three.js material:', mesh.name, mesh.material);
-                        }
-                        // Ensure environment map is enabled for reflective materials
-                        if (mesh.material.envMapIntensity === undefined || mesh.material.envMapIntensity === 0) {
-                            mesh.material.envMapIntensity = 1.0; // Enable environment mapping
-                        }
-                    }
-                    
-                    // Ensure material needsUpdate is set if needed (for shader materials)
-                    if (mesh.material.needsUpdate !== undefined) {
-                        mesh.material.needsUpdate = true;
-                    }
-                    
-                    // For material arrays, ensure each material is updated
-                    if (Array.isArray(mesh.material)) {
-                        mesh.material.forEach(mat => {
-                            if (mat && mat.needsUpdate !== undefined) {
-                                mat.needsUpdate = true;
-                            }
-                        });
-                    }
-                } else {
-                    console.warn('Mesh missing material:', mesh.name);
-                }
                 
                 // Reset mesh to origin in eyesGroup's local space
                 mesh.position.set(0, 0, 0);
@@ -2306,7 +2168,9 @@ class AvatarBuilder {
             }
         } catch (error) {
             console.error('Error loading eyes:', error);
-            alert(`Error loading ${eyeName}.glb:\n\n${error.message}\n\nMake sure the file exists in the WEARABLES/Eyes folder.`);
+            console.error('Attempted path:', filePath);
+            console.error('Full error details:', error);
+            alert(`Error loading ${eyeName}.glb:\n\nPath: ${filePath}\n\nError: ${error.message}\n\nMake sure:\n1. The file exists in the WEARABLES/Eyes folder\n2. You're running the app from a web server (not file://)\n3. Check the browser console for more details`);
         }
     }
 
@@ -2491,7 +2355,7 @@ class AvatarBuilder {
         } catch (error) {
             console.error('Error loading NFT traits:', error);
             this.showNFTError(`Error loading NFT #${nftNumber}: ${error.message}`);
-        }
+    }
     }
     
     showNFTError(message) {
@@ -2553,12 +2417,12 @@ class AvatarBuilder {
             // - Controls are enabled (user might be interacting)
             // - Auto-rotate is on
             if (this.needsRender || this.model || (this.controls && this.controls.enabled) || this.autoRotate) {
-                this.renderer.render(this.scene, this.camera);
+            this.renderer.render(this.scene, this.camera);
                 this.needsRender = false;
             }
         }
-    }
-    
+        }
+
     // Mark that a render is needed (call this when scene changes)
     requestRender() {
         this.needsRender = true;
