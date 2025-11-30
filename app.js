@@ -1943,6 +1943,30 @@ class AvatarBuilder {
         return meshes;
     }
 
+    extractEyeMeshes(scene) {
+        // For eye wearables, we want ALL meshes (don't filter out "eye" meshes)
+        // This ensures all materials and meshes from the GLB are included
+        const meshes = [];
+        scene.traverse((child) => {
+            if (!child.isMesh) return;
+
+            const n = child.name.toLowerCase();
+            // Only filter out body parts that aren't eyes (body, teeth, tongue, nose, whisker)
+            // Note: We DON'T filter out "eye" here because eye wearables contain eye meshes
+            const isBodyPart =
+                n.includes("body") ||
+                n.includes("teeth") ||
+                n.includes("tongue") ||
+                n.includes("nose") ||
+                n.includes("whisker");
+
+            if (!isBodyPart) {
+                meshes.push(child);
+            }
+        });
+        return meshes;
+    }
+
     removeHat() {
         if (this.currentHat) {
             // Remove hat from wherever it's parented (head bone, otter model, or scene)
@@ -2085,7 +2109,8 @@ class AvatarBuilder {
 
             this.removePlaceholdersFromScene(gltf.scene);
 
-            const meshes = this.extractWearableMeshes(gltf.scene);
+            // Use extractEyeMeshes instead of extractWearableMeshes to include all meshes
+            const meshes = this.extractEyeMeshes(gltf.scene);
             
             // CRITICAL FIX: Get WORLD transforms of meshes before extracting
             // This accounts for any parent transforms in the GLB hierarchy
@@ -2099,6 +2124,13 @@ class AvatarBuilder {
                 mesh.getWorldPosition(worldPos);
                 mesh.getWorldQuaternion(worldQuat);
                 mesh.getWorldScale(worldScale);
+                
+                // Ensure materials are properly preserved
+                // Materials should already be attached to the mesh from the GLB loader
+                // Just verify they exist and are properly set
+                if (!mesh.material) {
+                    console.warn('Mesh missing material:', mesh.name);
+                }
                 
                 // Reset mesh to origin in eyesGroup's local space
                 mesh.position.set(0, 0, 0);
