@@ -2101,6 +2101,33 @@ class AvatarBuilder {
 
             this.removePlaceholdersFromScene(gltf.scene);
 
+            // For viper eyes specifically, force transparency on all materials in the scene
+            const isViperEyes = eyeName.toLowerCase().includes('viper');
+            
+            // Fix materials for ALL meshes in the scene (not just extracted ones)
+            // This ensures we catch all materials that need transparency
+            if (isViperEyes) {
+                gltf.scene.traverse((child) => {
+                    if (child.isMesh && child.material) {
+                        const materials = Array.isArray(child.material) ? child.material : [child.material];
+                        const fixedMaterials = materials.map(material => {
+                            const cloned = material.clone();
+                            cloned.transparent = true;
+                            cloned.depthWrite = false;
+                            cloned.depthTest = true;
+                            cloned.side = THREE.DoubleSide;
+                            // For viper eyes, if opacity is 1.0, make it slightly transparent
+                            if (cloned.opacity === 1.0 && !cloned.map) {
+                                cloned.opacity = 0.95;
+                            }
+                            return cloned;
+                        });
+                        child.material = Array.isArray(child.material) ? fixedMaterials : fixedMaterials[0];
+                        child.renderOrder = 100;
+                    }
+                });
+            }
+
             const meshes = this.extractWearableMeshes(gltf.scene);
             
             // CRITICAL FIX: Get WORLD transforms of meshes before extracting
@@ -2112,14 +2139,48 @@ class AvatarBuilder {
                 if (mesh.material) {
                     // Handle both single materials and material arrays
                     const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-                    materials.forEach(material => {
-                        if (material.transparent || material.opacity < 1.0) {
+                    const clonedMaterials = materials.map(material => {
+                        // Clone material to avoid modifying the original
+                        const cloned = material.clone();
+                        
+                        // For viper eyes or transparent materials, apply transparency settings
+                        const needsTransparency = isViperEyes || 
+                                                 cloned.transparent || 
+                                                 cloned.opacity < 1.0 || 
+                                                 (cloned.map && cloned.map.alphaTest !== undefined);
+                        
+                        if (needsTransparency) {
                             // For transparent materials, ensure proper settings
-                            material.transparent = true;
-                            material.depthWrite = false;  // Prevents z-fighting with transparent objects
-                            material.side = THREE.DoubleSide;  // Render both sides for transparency
+                            cloned.transparent = true;
+                            cloned.depthWrite = false;  // Prevents z-fighting with transparent objects
+                            cloned.depthTest = true;   // Still test depth for proper ordering
+                            cloned.side = THREE.DoubleSide;  // Render both sides for transparency
+                            
+                            // For viper eyes, ensure opacity allows transparency
+                            if (isViperEyes && cloned.opacity === 1.0) {
+                                // Check if there's an alpha map or texture that indicates transparency
+                                if (cloned.map) {
+                                    // If there's a map, use it for transparency
+                                    cloned.opacity = 0.95; // Slightly transparent to allow underlying material to show
+                                } else {
+                                    // No map, might need to check color or other properties
+                                    cloned.opacity = 0.9;
+                                }
+                            }
+                            
+                            // Ensure renderOrder is set for proper sorting
+                            mesh.renderOrder = 100; // Render transparent objects after opaque ones
                         }
+                        
+                        return cloned;
                     });
+                    
+                    // Apply cloned materials back to mesh
+                    if (Array.isArray(mesh.material)) {
+                        mesh.material = clonedMaterials;
+                    } else {
+                        mesh.material = clonedMaterials[0];
+                    }
                 }
                 
                 // Get world transform before removing from GLB scene
