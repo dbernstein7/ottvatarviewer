@@ -2353,25 +2353,9 @@ class AvatarBuilder {
                 })
             );
             
-            // Wait for all wearables to load
-            Promise.all(loadPromises).then(() => {
-                // Ensure loading screen shows for at least 3 seconds
-                const elapsedTime = Date.now() - loadingStartTime;
-                const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
-                
-                console.log(`All wearables loaded. Elapsed: ${elapsedTime}ms, Remaining: ${remainingTime}ms`);
-                
-                setTimeout(() => {
-                    // Hide loading screen after all wearables are loaded AND minimum time has passed
-                    console.log('Hiding loading screen');
-                    if (loading) {
-                        loading.style.display = 'none';
-                    }
-                    this.isRandomizing = false; // Reset flag after loading completes
-                }, remainingTime);
-            }).catch((error) => {
-                console.error('Error loading wearables:', error);
-                // Still hide loading screen after minimum time even on error
+            // Wait for all wearables to load (or resolve immediately if no promises)
+            if (loadPromises.length === 0) {
+                // If no promises (shouldn't happen, but handle it), just wait for minimum time
                 const elapsedTime = Date.now() - loadingStartTime;
                 const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
                 setTimeout(() => {
@@ -2380,7 +2364,35 @@ class AvatarBuilder {
                     }
                     this.isRandomizing = false;
                 }, remainingTime);
-            });
+            } else {
+                Promise.all(loadPromises).then(() => {
+                    // Ensure loading screen shows for at least 3 seconds
+                    const elapsedTime = Date.now() - loadingStartTime;
+                    const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+                    
+                    console.log(`All wearables loaded. Elapsed: ${elapsedTime}ms, Remaining: ${remainingTime}ms`);
+                    
+                    setTimeout(() => {
+                        // Hide loading screen after all wearables are loaded AND minimum time has passed
+                        console.log('Hiding loading screen');
+                        if (loading) {
+                            loading.style.display = 'none';
+                        }
+                        this.isRandomizing = false; // Reset flag after loading completes
+                    }, remainingTime);
+                }).catch((error) => {
+                    console.error('Error loading wearables:', error);
+                    // Still hide loading screen after minimum time even on error
+                    const elapsedTime = Date.now() - loadingStartTime;
+                    const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+                    setTimeout(() => {
+                        if (loading) {
+                            loading.style.display = 'none';
+                        }
+                        this.isRandomizing = false;
+                    }, remainingTime);
+                });
+            }
         }).catch((error) => {
             console.error('Error during randomize:', error);
             // Hide loading screen on error after minimum time
@@ -2522,21 +2534,9 @@ class AvatarBuilder {
                     }
                 }
                 
-                // Wait for all wearables to load
-                Promise.all(loadPromises).then(() => {
-                    // Ensure loading screen shows for at least 3 seconds
-                    const elapsedTime = Date.now() - loadingStartTime;
-                    const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
-                    
-                    setTimeout(() => {
-                        // Hide loading screen after all wearables are loaded AND minimum time has passed
-                        if (loading) {
-                            loading.style.display = 'none';
-                        }
-                    }, remainingTime);
-                }).catch((error) => {
-                    console.error('Error loading wearables:', error);
-                    // Still hide loading screen after minimum time even on error
+                // Wait for all wearables to load (or resolve immediately if no promises)
+                if (loadPromises.length === 0) {
+                    // If no promises (shouldn't happen, but handle it), just wait for minimum time
                     const elapsedTime = Date.now() - loadingStartTime;
                     const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
                     setTimeout(() => {
@@ -2544,7 +2544,33 @@ class AvatarBuilder {
                             loading.style.display = 'none';
                         }
                     }, remainingTime);
-                });
+                } else {
+                    Promise.all(loadPromises).then(() => {
+                        // Ensure loading screen shows for at least 3 seconds
+                        const elapsedTime = Date.now() - loadingStartTime;
+                        const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+                        
+                        console.log(`NFT: All wearables loaded. Elapsed: ${elapsedTime}ms, Remaining: ${remainingTime}ms`);
+                        
+                        setTimeout(() => {
+                            // Hide loading screen after all wearables are loaded AND minimum time has passed
+                            console.log('NFT: Hiding loading screen');
+                            if (loading) {
+                                loading.style.display = 'none';
+                            }
+                        }, remainingTime);
+                    }).catch((error) => {
+                        console.error('Error loading wearables:', error);
+                        // Still hide loading screen after minimum time even on error
+                        const elapsedTime = Date.now() - loadingStartTime;
+                        const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+                        setTimeout(() => {
+                            if (loading) {
+                                loading.style.display = 'none';
+                            }
+                        }, remainingTime);
+                    });
+                }
             } else {
                 throw new Error('No Fur trait found in metadata');
             }

@@ -45,7 +45,7 @@
             <div class="viewer-container">
                 <div id="canvas-container">
                     <div class="loading" id="loading" style="display: none;">
-                        <img src="ottspin.png" alt="Loading" class="spinner-image">
+                        <img src="ottspin.png" alt="Loading" class="spinner-image" onerror="this.style.display='none'; console.error('Failed to load ottspin.png');">
                         <p>Loading model...</p>
                     </div>
                     <div class="placeholder" id="placeholder">

@@ -709,6 +709,8 @@ header p {
     margin: 0 auto 1.5rem;
     animation: spin 1s linear infinite;
     filter: drop-shadow(0 0 20px var(--accent-glow));
+    display: block;
+    object-fit: contain;
 }
 
 @keyframes spin {
