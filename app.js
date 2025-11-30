@@ -184,7 +184,13 @@ class AvatarBuilder {
         container.appendChild(this.renderer.domElement);
         
         // Setup environment map for reflective materials (like polarized lenses)
-        this.setupEnvironmentMap();
+        // Make this non-blocking - if it fails, the app should still work
+        // Temporarily disabled to fix loading issue
+        // try {
+        //     this.setupEnvironmentMap();
+        // } catch (error) {
+        //     console.warn('Environment map setup failed, continuing without it:', error);
+        // }
 
         // Controls
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -281,57 +287,67 @@ class AvatarBuilder {
     }
 
     setupEnvironmentMap() {
-        // Create a simple environment map for reflective materials
-        // This is essential for materials with high metallic/roughness like polarized lenses
-        const pmremGenerator = new PMREMGenerator(this.renderer);
-        pmremGenerator.compileEquirectangularShader();
-        
-        // Create a simple environment map using a color gradient
-        // This provides something for reflective materials to reflect
-        const envScene = new THREE.Scene();
-        
-        // Add a gradient background using a large sphere
-        const envGeometry = new THREE.SphereGeometry(100, 32, 32);
-        const envMaterial = new THREE.MeshBasicMaterial({
-            side: THREE.BackSide,
-            color: 0xffffff
-        });
-        
-        // Create a gradient texture
-        const size = 512;
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const context = canvas.getContext('2d');
-        
-        // Create a gradient from light blue (sky) to white (horizon)
-        const gradient = context.createLinearGradient(0, 0, 0, size);
-        gradient.addColorStop(0, '#87CEEB'); // Sky blue
-        gradient.addColorStop(0.5, '#E0F6FF'); // Light blue
-        gradient.addColorStop(1, '#FFFFFF'); // White
-        
-        context.fillStyle = gradient;
-        context.fillRect(0, 0, size, size);
-        
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.mapping = THREE.EquirectangularReflectionMapping;
-        envMaterial.map = texture;
-        
-        const envMesh = new THREE.Mesh(envGeometry, envMaterial);
-        envScene.add(envMesh);
-        
-        // Generate PMREM environment map
-        const envMap = pmremGenerator.fromScene(envScene, 0.04).texture;
-        
-        // Set as scene environment (for reflections on materials)
-        // Keep the dark background for the scene itself
-        this.scene.environment = envMap;
-        
-        // Cleanup
-        pmremGenerator.dispose();
-        envGeometry.dispose();
-        envMaterial.dispose();
-        texture.dispose();
+        try {
+            // Create a simple environment map for reflective materials
+            // This is essential for materials with high metallic/roughness like polarized lenses
+            if (!PMREMGenerator) {
+                console.warn('PMREMGenerator not available, skipping environment map setup');
+                return;
+            }
+            
+            const pmremGenerator = new PMREMGenerator(this.renderer);
+            pmremGenerator.compileEquirectangularShader();
+            
+            // Create a simple environment map using a color gradient
+            // This provides something for reflective materials to reflect
+            const envScene = new THREE.Scene();
+            
+            // Add a gradient background using a large sphere
+            const envGeometry = new THREE.SphereGeometry(100, 32, 32);
+            const envMaterial = new THREE.MeshBasicMaterial({
+                side: THREE.BackSide,
+                color: 0xffffff
+            });
+            
+            // Create a gradient texture
+            const size = 512;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const context = canvas.getContext('2d');
+            
+            // Create a gradient from light blue (sky) to white (horizon)
+            const gradient = context.createLinearGradient(0, 0, 0, size);
+            gradient.addColorStop(0, '#87CEEB'); // Sky blue
+            gradient.addColorStop(0.5, '#E0F6FF'); // Light blue
+            gradient.addColorStop(1, '#FFFFFF'); // White
+            
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, size, size);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            envMaterial.map = texture;
+            
+            const envMesh = new THREE.Mesh(envGeometry, envMaterial);
+            envScene.add(envMesh);
+            
+            // Generate PMREM environment map
+            const envMap = pmremGenerator.fromScene(envScene, 0.04).texture;
+            
+            // Set as scene environment (for reflections on materials)
+            // Keep the dark background for the scene itself
+            this.scene.environment = envMap;
+            
+            // Cleanup
+            pmremGenerator.dispose();
+            envGeometry.dispose();
+            envMaterial.dispose();
+            texture.dispose();
+        } catch (error) {
+            console.error('Error setting up environment map:', error);
+            // Don't break the app if environment map setup fails
+        }
     }
 
     setupDiscreteZoom() {
