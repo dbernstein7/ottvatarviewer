@@ -2280,7 +2280,7 @@ class AvatarBuilder {
         const loading = document.getElementById('loading');
         const placeholder = document.getElementById('placeholder');
         const loadingStartTime = Date.now();
-        const minLoadingTime = 3000; // 3 seconds minimum
+        const minLoadingTime = 6000; // 6 seconds minimum
         
         if (loading) {
             loading.style.display = 'block';
@@ -2333,7 +2333,7 @@ class AvatarBuilder {
             setTimeout(() => {
                 this.loadEyes(randomEyes);
                 
-                // Ensure loading screen shows for at least 3 seconds
+                // Ensure loading screen shows for at least 6 seconds
                 const elapsedTime = Date.now() - loadingStartTime;
                 const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
                 
