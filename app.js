@@ -138,8 +138,9 @@ class AvatarBuilder {
         }
         
         // Setup theme toggle button
+        // Theme toggle button removed - keeping function for compatibility but no-op
         const themeToggle = document.getElementById('theme-toggle');
-        if (themeToggle) {
+        if (false && themeToggle) {
             themeToggle.addEventListener('click', () => {
                 const currentTheme = document.documentElement.getAttribute('data-theme');
                 const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
