@@ -775,7 +775,7 @@ class AvatarBuilder {
         });
     }
 
-    async loadFurFile(furName, preserveWearables = true) {
+    async loadFurFile(furName, preserveWearables = true, manageLoadingScreen = true) {
         // Load GLB file directly from the WEARABLES/Furs folder
         const fileName = `${furName}.glb`;
         // Properly encode the file path to handle spaces and special characters
@@ -783,8 +783,16 @@ class AvatarBuilder {
         
         const loading = document.getElementById('loading');
         const placeholder = document.getElementById('placeholder');
-        loading.style.display = 'block';
-        placeholder.style.display = 'none';
+        
+        // Only manage loading screen if explicitly requested (default behavior)
+        if (manageLoadingScreen) {
+            if (loading) {
+                loading.style.display = 'block';
+            }
+            if (placeholder) {
+                placeholder.style.display = 'none';
+            }
+        }
 
         const loader = new GLTFLoader();
         
@@ -928,9 +936,14 @@ class AvatarBuilder {
         } catch (error) {
             console.error('Error loading GLB:', error);
             alert(`Error loading ${fileName}:\n\n${error.message}\n\nMake sure the file exists in the WEARABLES/Furs folder.`);
-            placeholder.style.display = 'flex';
+            if (manageLoadingScreen && placeholder) {
+                placeholder.style.display = 'flex';
+            }
         } finally {
-            loading.style.display = 'none';
+            // Only hide loading screen if we're managing it
+            if (manageLoadingScreen && loading) {
+                loading.style.display = 'none';
+            }
         }
     }
 
@@ -2297,8 +2310,8 @@ class AvatarBuilder {
         // Randomly select a fur
         const randomFur = this.furOptions[Math.floor(Math.random() * this.furOptions.length)];
         
-        // Load the random fur (don't preserve wearables when randomizing)
-        this.loadFurFile(randomFur, false).then(() => {
+        // Load the random fur (don't preserve wearables when randomizing, and don't manage loading screen)
+        this.loadFurFile(randomFur, false, false).then(() => {
             // After fur loads, randomly select wearables
             const shouldHaveHat = Math.random() > 0.3; // 70% chance of having a hat
             const shouldHaveShirt = Math.random() > 0.2; // 80% chance of having a shirt
@@ -2346,8 +2359,11 @@ class AvatarBuilder {
                 const elapsedTime = Date.now() - loadingStartTime;
                 const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
                 
+                console.log(`All wearables loaded. Elapsed: ${elapsedTime}ms, Remaining: ${remainingTime}ms`);
+                
                 setTimeout(() => {
                     // Hide loading screen after all wearables are loaded AND minimum time has passed
+                    console.log('Hiding loading screen');
                     if (loading) {
                         loading.style.display = 'none';
                     }
