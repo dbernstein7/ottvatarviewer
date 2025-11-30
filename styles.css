@@ -686,22 +686,32 @@ header p {
 
 .loading {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 10, 10, 0.95);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    z-index: 10;
+    z-index: 10000;
+    pointer-events: all;
 }
 
 .spinner {
-    width: 56px;
-    height: 56px;
-    border: 4px solid rgba(31, 31, 31, 0.3);
+    width: 64px;
+    height: 64px;
+    border: 5px solid rgba(31, 31, 31, 0.3);
     border-top-color: var(--accent);
     border-radius: 50%;
     animation: spin 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-    margin: 0 auto 1.25rem;
-    box-shadow: 0 0 20px var(--accent-glow);
+    margin: 0 auto 1.5rem;
+    box-shadow: 0 0 30px var(--accent-glow),
+                0 0 60px rgba(139, 92, 246, 0.3);
 }
 
 @keyframes spin {
@@ -709,7 +719,11 @@ header p {
 }
 
 .loading p {
-    color: var(--text-secondary);
+    color: var(--text-primary);
+    font-size: 1.125rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .viewer-info {
