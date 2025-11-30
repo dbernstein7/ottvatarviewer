@@ -32,15 +32,15 @@
                             🔍 Load
                         </button>
                     </div>
-                    <button id="inventory-toggle" class="btn btn-primary inventory-toggle" title="Open Inventory">
-                        📦 Inventory
-                    </button>
             </div>
             <div id="nft-search-error" style="margin-top: 0.5rem; color: var(--warning); display: none; font-size: 0.875rem; text-align: center;"></div>
         </header>
 
         <div class="main-content">
             <div class="viewer-container">
+                <button id="inventory-toggle" class="inventory-toggle-overlay" title="Open Inventory" aria-label="Open Inventory">
+                    →
+                </button>
                 <div id="canvas-container">
                     <div class="loading" id="loading" style="display: none;">
                         <img src="ottspin.png" alt="Loading" class="spinner-image" onerror="console.error('Failed to load ottspin.png:', this.src); this.style.border='2px solid red';">

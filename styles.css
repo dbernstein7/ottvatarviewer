@@ -638,6 +638,7 @@ header p {
 }
 
 .viewer-container {
+    position: relative;
     flex: 1;
     position: relative;
     background: var(--bg-primary);
@@ -1306,10 +1307,42 @@ header p {
 
 
 /* Inventory Panel Styles */
-.inventory-toggle {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    white-space: nowrap;
+.inventory-toggle-overlay {
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    background: rgba(20, 20, 20, 0.8);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    padding: 0;
+    line-height: 1;
+}
+
+.inventory-toggle-overlay:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: var(--accent);
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4),
+                0 0 20px rgba(139, 92, 246, 0.2);
+}
+
+.inventory-toggle-overlay:active {
+    transform: translateY(-50%) scale(0.95);
 }
 
 .inventory-panel {
@@ -1418,9 +1451,11 @@ header p {
         right: -85vw;
     }
     
-    .inventory-toggle {
-        padding: 0.4rem 0.75rem;
-        font-size: 0.75rem;
+    .inventory-toggle-overlay {
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
+        right: 0.75rem;
     }
 }
 
