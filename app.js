@@ -2280,7 +2280,7 @@ class AvatarBuilder {
         const loading = document.getElementById('loading');
         const placeholder = document.getElementById('placeholder');
         const loadingStartTime = Date.now();
-        const minLoadingTime = 6000; // 6 seconds minimum
+        const minLoadingTime = 3000; // 3 seconds minimum
         
         if (loading) {
             loading.style.display = 'block';
@@ -2299,59 +2299,83 @@ class AvatarBuilder {
         
         // Load the random fur (don't preserve wearables when randomizing)
         this.loadFurFile(randomFur, false).then(() => {
-            // After fur loads, randomly select a hat (or no hat)
+            // After fur loads, randomly select wearables
             const shouldHaveHat = Math.random() > 0.3; // 70% chance of having a hat
+            const shouldHaveShirt = Math.random() > 0.2; // 80% chance of having a shirt
+            const randomEyes = this.eyeOptions[Math.floor(Math.random() * this.eyeOptions.length)];
             
+            // Create array of promises for all loading operations
+            const loadPromises = [];
+            
+            // Load hat if needed
             if (shouldHaveHat) {
                 const randomHat = this.hatOptions[Math.floor(Math.random() * this.hatOptions.length)];
-                // Small delay to ensure fur is fully loaded
-                setTimeout(() => {
-                    this.loadHat(randomHat);
-                }, 100);
-            } else {
-                // Remove hat if one exists (should already be removed, but double-check)
-                this.removeHat();
+                loadPromises.push(
+                    new Promise(resolve => {
+                        setTimeout(() => {
+                            this.loadHat(randomHat).then(resolve).catch(resolve);
+                        }, 100);
+                    })
+                );
             }
-
-            // Randomly select a shirt (or no shirt)
-            const shouldHaveShirt = Math.random() > 0.2; // 80% chance of having a shirt
             
+            // Load shirt if needed
             if (shouldHaveShirt) {
                 const randomShirt = this.shirtOptions[Math.floor(Math.random() * this.shirtOptions.length)];
-                // Small delay to ensure fur is fully loaded
-                setTimeout(() => {
-                    this.loadShirt(randomShirt);
-                }, 150);
-            } else {
-                // Remove shirt if one exists (should already be removed, but double-check)
-                this.removeShirt();
+                loadPromises.push(
+                    new Promise(resolve => {
+                        setTimeout(() => {
+                            this.loadShirt(randomShirt).then(resolve).catch(resolve);
+                        }, 150);
+                    })
+                );
             }
-
-            // Always select eyes (100% chance - eyes must show every generation)
-            const randomEyes = this.eyeOptions[Math.floor(Math.random() * this.eyeOptions.length)];
-            // Small delay to ensure fur is fully loaded
-            setTimeout(() => {
-                this.loadEyes(randomEyes);
-                
-                // Ensure loading screen shows for at least 6 seconds
+            
+            // Always load eyes (100% chance - eyes must show every generation)
+            loadPromises.push(
+                new Promise(resolve => {
+                    setTimeout(() => {
+                        this.loadEyes(randomEyes).then(resolve).catch(resolve);
+                    }, 200);
+                })
+            );
+            
+            // Wait for all wearables to load
+            Promise.all(loadPromises).then(() => {
+                // Ensure loading screen shows for at least 3 seconds
                 const elapsedTime = Date.now() - loadingStartTime;
                 const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
                 
                 setTimeout(() => {
-                    // Hide loading screen after minimum time
+                    // Hide loading screen after all wearables are loaded AND minimum time has passed
                     if (loading) {
                         loading.style.display = 'none';
                     }
                     this.isRandomizing = false; // Reset flag after loading completes
                 }, remainingTime);
-            }, 200);
+            }).catch((error) => {
+                console.error('Error loading wearables:', error);
+                // Still hide loading screen after minimum time even on error
+                const elapsedTime = Date.now() - loadingStartTime;
+                const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+                setTimeout(() => {
+                    if (loading) {
+                        loading.style.display = 'none';
+                    }
+                    this.isRandomizing = false;
+                }, remainingTime);
+            });
         }).catch((error) => {
             console.error('Error during randomize:', error);
-            // Hide loading screen on error
-            if (loading) {
-                loading.style.display = 'none';
-            }
-            this.isRandomizing = false; // Reset flag on error
+            // Hide loading screen on error after minimum time
+            const elapsedTime = Date.now() - loadingStartTime;
+            const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+            setTimeout(() => {
+                if (loading) {
+                    loading.style.display = 'none';
+                }
+                this.isRandomizing = false; // Reset flag on error
+            }, remainingTime);
         });
     }
 
