@@ -1309,9 +1309,9 @@ header p {
 /* Inventory Panel Styles */
 .inventory-toggle-overlay {
     position: absolute;
-    top: 50%;
+    top: 2rem;
     right: 1rem;
-    transform: translateY(-50%);
+    transform: none;
     width: 56px;
     height: 56px;
     background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.05) 100%);
@@ -1372,7 +1372,7 @@ header p {
 }
 
 .inventory-toggle-overlay:active {
-    transform: translateY(-50%) scale(1.05);
+    transform: scale(1.05);
 }
 
 .inventory-toggle-overlay:active svg {
