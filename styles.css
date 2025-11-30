@@ -1359,7 +1359,7 @@ header p {
 .inventory-toggle-overlay:hover {
     background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(139, 92, 246, 0.15) 100%);
     border-color: var(--accent);
-    transform: translateY(-50%) scale(1.15);
+    transform: scale(1.15);
     box-shadow: 0 12px 32px rgba(139, 92, 246, 0.4),
                 0 0 0 2px rgba(139, 92, 246, 0.2),
                 0 0 40px rgba(139, 92, 246, 0.3),
