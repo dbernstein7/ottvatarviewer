@@ -709,8 +709,12 @@ header p {
     margin: 0 auto 1.5rem;
     animation: spin 1s linear infinite;
     filter: drop-shadow(0 0 20px var(--accent-glow));
-    display: block;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
     object-fit: contain;
+    max-width: 120px;
+    max-height: 120px;
 }
 
 @keyframes spin {
