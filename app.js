@@ -2276,6 +2276,19 @@ class AvatarBuilder {
         
         this.isRandomizing = true;
         
+        // Show loading screen
+        const loading = document.getElementById('loading');
+        const placeholder = document.getElementById('placeholder');
+        const loadingStartTime = Date.now();
+        const minLoadingTime = 3000; // 3 seconds minimum
+        
+        if (loading) {
+            loading.style.display = 'block';
+        }
+        if (placeholder) {
+            placeholder.style.display = 'none';
+        }
+        
         // Remove all existing wearables first to prevent stacking
         this.removeHat();
         this.removeShirt();
@@ -2319,10 +2332,25 @@ class AvatarBuilder {
             // Small delay to ensure fur is fully loaded
             setTimeout(() => {
                 this.loadEyes(randomEyes);
-                this.isRandomizing = false; // Reset flag after eyes load
+                
+                // Ensure loading screen shows for at least 3 seconds
+                const elapsedTime = Date.now() - loadingStartTime;
+                const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+                
+                setTimeout(() => {
+                    // Hide loading screen after minimum time
+                    if (loading) {
+                        loading.style.display = 'none';
+                    }
+                    this.isRandomizing = false; // Reset flag after loading completes
+                }, remainingTime);
             }, 200);
         }).catch((error) => {
             console.error('Error during randomize:', error);
+            // Hide loading screen on error
+            if (loading) {
+                loading.style.display = 'none';
+            }
             this.isRandomizing = false; // Reset flag on error
         });
     }
