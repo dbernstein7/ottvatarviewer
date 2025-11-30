@@ -449,6 +449,45 @@ class AvatarBuilder {
     // Rotate hat on specified axis (in radians)
     // axis: 'x', 'y', 'z' or 'flip' (180 degrees on Y)
     // amount: rotation amount in radians (default: Math.PI/2 for 90 degrees)
+    createGradientBackground(isLight = true) {
+        // Create a canvas for gradient
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 256;
+        const context = canvas.getContext('2d');
+        
+        // Create gradient
+        const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
+        if (isLight) {
+            // Light gradient: from light blue-white to soft cream
+            gradient.addColorStop(0, '#f0f8ff'); // Alice blue
+            gradient.addColorStop(0.5, '#e6f3ff'); // Light blue
+            gradient.addColorStop(1, '#fff8e6'); // Cream
+        } else {
+            // Dark gradient: from dark gray to black
+            gradient.addColorStop(0, '#1a1a1a');
+            gradient.addColorStop(0.5, '#0f0f0f');
+            gradient.addColorStop(1, '#0a0a0a');
+        }
+        
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Create texture from canvas
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        
+        // Set as scene background
+        this.scene.background = texture;
+        
+        // Add subtle fog for depth
+        if (isLight) {
+            this.scene.fog = new THREE.Fog(0xe6f3ff, 15, 60);
+        } else {
+            this.scene.fog = new THREE.Fog(0x0a0a0a, 10, 50);
+        }
+    }
+
     setBackground(preset) {
         const customColorGroup = document.getElementById('custom-color-group');
         
