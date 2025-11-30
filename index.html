@@ -32,6 +32,9 @@
                             🔍 Load
                         </button>
                     </div>
+                    <button id="inventory-toggle" class="btn btn-primary inventory-toggle" title="Open Inventory">
+                        📦 Inventory
+                    </button>
             </div>
             <div id="nft-search-error" style="margin-top: 0.5rem; color: var(--warning); display: none; font-size: 0.875rem; text-align: center;"></div>
         </header>
@@ -123,6 +126,18 @@
             </div>
         </div>
     </div>
+
+    <!-- Inventory Panel -->
+    <div id="inventory-panel" class="inventory-panel">
+        <div class="inventory-header">
+            <h2>Inventory</h2>
+            <button id="inventory-close" class="inventory-close" aria-label="Close Inventory">×</button>
+        </div>
+        <div class="inventory-content">
+            <p>Your inventory items will appear here.</p>
+        </div>
+    </div>
+    <div id="inventory-overlay" class="inventory-overlay"></div>
 
     <script type="importmap">
     {

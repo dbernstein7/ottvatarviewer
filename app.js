@@ -115,6 +115,7 @@ class AvatarBuilder {
             this.setupScene();
             // Note: Reference file loading removed - using default transforms
             this.setupEventListeners();
+            this.setupInventory();
             this.setupFurGallery();
             this.setupHatGallery();
             this.setupShirtGallery();
@@ -563,6 +564,44 @@ class AvatarBuilder {
         this.currentHat.updateMatrixWorld();
         
         console.log(`Hat rotated on ${axis.toUpperCase()} axis by ${((amount !== null ? amount : Math.PI / 2) * 180 / Math.PI).toFixed(1)}°`);
+    }
+
+    setupInventory() {
+        const inventoryToggle = document.getElementById('inventory-toggle');
+        const inventoryPanel = document.getElementById('inventory-panel');
+        const inventoryClose = document.getElementById('inventory-close');
+        const inventoryOverlay = document.getElementById('inventory-overlay');
+        
+        const openInventory = () => {
+            inventoryPanel.classList.add('open');
+            inventoryOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        };
+        
+        const closeInventory = () => {
+            inventoryPanel.classList.remove('open');
+            inventoryOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        };
+        
+        if (inventoryToggle) {
+            inventoryToggle.addEventListener('click', openInventory);
+        }
+        
+        if (inventoryClose) {
+            inventoryClose.addEventListener('click', closeInventory);
+        }
+        
+        if (inventoryOverlay) {
+            inventoryOverlay.addEventListener('click', closeInventory);
+        }
+        
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && inventoryPanel.classList.contains('open')) {
+                closeInventory();
+            }
+        });
     }
 
     setupEventListeners() {
