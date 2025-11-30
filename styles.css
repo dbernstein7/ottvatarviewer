@@ -1312,37 +1312,71 @@ header p {
     top: 50%;
     right: 1rem;
     transform: translateY(-50%);
-    width: 48px;
-    height: 48px;
-    background: rgba(20, 20, 20, 0.8);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    color: var(--text-primary);
-    font-size: 1.5rem;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.05) 100%);
+    backdrop-filter: blur(30px) saturate(200%);
+    -webkit-backdrop-filter: blur(30px) saturate(200%);
+    border: 2px solid rgba(139, 92, 246, 0.3);
+    border-radius: 16px;
+    color: var(--accent);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 100;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2),
+                0 0 0 1px rgba(139, 92, 246, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
     padding: 0;
     line-height: 1;
+    overflow: hidden;
+}
+
+.inventory-toggle-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.inventory-toggle-overlay:hover::before {
+    left: 100%;
+}
+
+.inventory-toggle-overlay svg {
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.6));
+    transition: transform 0.3s ease;
 }
 
 .inventory-toggle-overlay:hover {
-    background: rgba(139, 92, 246, 0.2);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(139, 92, 246, 0.15) 100%);
     border-color: var(--accent);
-    transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4),
-                0 0 20px rgba(139, 92, 246, 0.2);
+    transform: translateY(-50%) scale(1.15);
+    box-shadow: 0 12px 32px rgba(139, 92, 246, 0.4),
+                0 0 0 2px rgba(139, 92, 246, 0.2),
+                0 0 40px rgba(139, 92, 246, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.inventory-toggle-overlay:hover svg {
+    transform: translateX(-2px);
+    filter: drop-shadow(0 0 12px rgba(139, 92, 246, 0.8));
 }
 
 .inventory-toggle-overlay:active {
-    transform: translateY(-50%) scale(0.95);
+    transform: translateY(-50%) scale(1.05);
+}
+
+.inventory-toggle-overlay:active svg {
+    transform: translateX(-4px);
 }
 
 .inventory-panel {
@@ -1452,10 +1486,14 @@ header p {
     }
     
     .inventory-toggle-overlay {
-        width: 40px;
-        height: 40px;
-        font-size: 1.25rem;
+        width: 48px;
+        height: 48px;
         right: 0.75rem;
+    }
+    
+    .inventory-toggle-overlay svg {
+        width: 20px;
+        height: 20px;
     }
 }
 
