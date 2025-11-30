@@ -179,12 +179,14 @@ class AvatarBuilder {
             antialias: true,
             powerPreference: "high-performance",
             stencil: false,
-            depth: true
+            depth: true,
+            alpha: true  // Enable alpha channel for transparency
         });
         this.renderer.setSize(container.clientWidth, container.clientHeight);
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
+        this.renderer.sortObjects = true; // Enable sorting for proper transparent object rendering
         container.appendChild(this.renderer.domElement);
 
         // Controls
@@ -2106,6 +2108,20 @@ class AvatarBuilder {
             gltf.scene.updateMatrixWorld(true);
             
             meshes.forEach(mesh => {
+                // Fix material transparency settings for proper rendering
+                if (mesh.material) {
+                    // Handle both single materials and material arrays
+                    const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+                    materials.forEach(material => {
+                        if (material.transparent || material.opacity < 1.0) {
+                            // For transparent materials, ensure proper settings
+                            material.transparent = true;
+                            material.depthWrite = false;  // Prevents z-fighting with transparent objects
+                            material.side = THREE.DoubleSide;  // Render both sides for transparency
+                        }
+                    });
+                }
+                
                 // Get world transform before removing from GLB scene
                 const worldPos = new THREE.Vector3();
                 const worldQuat = new THREE.Quaternion();
