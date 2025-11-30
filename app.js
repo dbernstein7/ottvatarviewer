@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
+import { PMREMGenerator } from 'three/addons/utils/PMREMGenerator.js';
 
 class AvatarBuilder {
     constructor() {
@@ -178,7 +179,12 @@ class AvatarBuilder {
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
+        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        this.renderer.toneMappingExposure = 1.0;
         container.appendChild(this.renderer.domElement);
+        
+        // Setup environment map for reflective materials (like polarized lenses)
+        this.setupEnvironmentMap();
 
         // Controls
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -272,6 +278,60 @@ class AvatarBuilder {
 
         // Handle resize
         window.addEventListener('resize', () => this.onWindowResize());
+    }
+
+    setupEnvironmentMap() {
+        // Create a simple environment map for reflective materials
+        // This is essential for materials with high metallic/roughness like polarized lenses
+        const pmremGenerator = new PMREMGenerator(this.renderer);
+        pmremGenerator.compileEquirectangularShader();
+        
+        // Create a simple environment map using a color gradient
+        // This provides something for reflective materials to reflect
+        const envScene = new THREE.Scene();
+        
+        // Add a gradient background using a large sphere
+        const envGeometry = new THREE.SphereGeometry(100, 32, 32);
+        const envMaterial = new THREE.MeshBasicMaterial({
+            side: THREE.BackSide,
+            color: 0xffffff
+        });
+        
+        // Create a gradient texture
+        const size = 512;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const context = canvas.getContext('2d');
+        
+        // Create a gradient from light blue (sky) to white (horizon)
+        const gradient = context.createLinearGradient(0, 0, 0, size);
+        gradient.addColorStop(0, '#87CEEB'); // Sky blue
+        gradient.addColorStop(0.5, '#E0F6FF'); // Light blue
+        gradient.addColorStop(1, '#FFFFFF'); // White
+        
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, size, size);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        envMaterial.map = texture;
+        
+        const envMesh = new THREE.Mesh(envGeometry, envMaterial);
+        envScene.add(envMesh);
+        
+        // Generate PMREM environment map
+        const envMap = pmremGenerator.fromScene(envScene, 0.04).texture;
+        
+        // Set as scene environment (for reflections on materials)
+        // Keep the dark background for the scene itself
+        this.scene.environment = envMap;
+        
+        // Cleanup
+        pmremGenerator.dispose();
+        envGeometry.dispose();
+        envMaterial.dispose();
+        texture.dispose();
     }
 
     setupDiscreteZoom() {
@@ -2139,6 +2199,10 @@ class AvatarBuilder {
                             if (mat) {
                                 // Ensure material is properly referenced and not lost
                                 // Don't clone - keep original reference to preserve shaders and special properties
+                                // Ensure environment map is enabled for reflective materials
+                                if (mat.envMapIntensity === undefined || mat.envMapIntensity === 0) {
+                                    mat.envMapIntensity = 1.0; // Enable environment mapping
+                                }
                                 return mat;
                             }
                             return mat;
@@ -2148,6 +2212,10 @@ class AvatarBuilder {
                         // Keep original material reference to preserve all properties (shaders, textures, etc.)
                         if (!mesh.material.isMaterial) {
                             console.warn('Material is not a proper Three.js material:', mesh.name, mesh.material);
+                        }
+                        // Ensure environment map is enabled for reflective materials
+                        if (mesh.material.envMapIntensity === undefined || mesh.material.envMapIntensity === 0) {
+                            mesh.material.envMapIntensity = 1.0; // Enable environment mapping
                         }
                     }
                     
