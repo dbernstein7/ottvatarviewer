@@ -28,6 +28,7 @@ class AvatarBuilder {
         this.rotationSpeed = 0.005;  // Rotation speed (radians per frame)
         this.needsRender = true;  // Performance: only render when needed
         this.isRendering = false;  // Prevent multiple renders
+        this.isRandomizing = false;  // Prevent overlapping randomize calls
         
         // Available fur options
         this.furOptions = [
@@ -774,7 +775,7 @@ class AvatarBuilder {
         });
     }
 
-    async loadFurFile(furName) {
+    async loadFurFile(furName, preserveWearables = true) {
         // Load GLB file directly from the WEARABLES/Furs folder
         const fileName = `${furName}.glb`;
         // Properly encode the file path to handle spaces and special characters
@@ -869,8 +870,8 @@ class AvatarBuilder {
             document.getElementById('shirt-panel').style.display = 'block';
             document.getElementById('eyes-panel').style.display = 'block';
             
-            // Restore hat if it existed (preserve hat when switching furs)
-            if (previousHat) {
+            // Restore hat if it existed (preserve hat when switching furs, unless preserveWearables is false)
+            if (previousHat && preserveWearables) {
                 // Find head bone in new model
                 const headBone = this.findHeadBone(this.model);
                 if (headBone) {
@@ -883,18 +884,28 @@ class AvatarBuilder {
                     this.currentHat = null;
                     document.getElementById('remove-hat-btn').disabled = true;
                 }
+            } else if (previousHat && !preserveWearables) {
+                // Clean up previous hat if not preserving
+                this.scene.remove(previousHat);
+                this.currentHat = null;
+                document.getElementById('remove-hat-btn').disabled = true;
             }
 
-            // Restore shirt if it existed (preserve shirt when switching furs)
-            if (previousShirt) {
+            // Restore shirt if it existed (preserve shirt when switching furs, unless preserveWearables is false)
+            if (previousShirt && preserveWearables) {
                 // Attach directly to model root (not body bone) to align with furs
                 this.model.add(previousShirt);
                 this.currentShirt = previousShirt;
                 document.getElementById('remove-shirt-btn').disabled = false;
+            } else if (previousShirt && !preserveWearables) {
+                // Clean up previous shirt if not preserving
+                this.scene.remove(previousShirt);
+                this.currentShirt = null;
+                document.getElementById('remove-shirt-btn').disabled = true;
             }
 
-            // Restore eyes if they existed (preserve eyes when switching furs)
-            if (previousEyes) {
+            // Restore eyes if they existed (preserve eyes when switching furs, unless preserveWearables is false)
+            if (previousEyes && preserveWearables) {
                 // Find head bone in new model
                 const headBone = this.findHeadBone(this.model);
                 if (headBone) {
@@ -907,6 +918,11 @@ class AvatarBuilder {
                     this.currentEyes = null;
                     document.getElementById('remove-eyes-btn').disabled = true;
                 }
+            } else if (previousEyes && !preserveWearables) {
+                // Clean up previous eyes if not preserving
+                this.scene.remove(previousEyes);
+                this.currentEyes = null;
+                document.getElementById('remove-eyes-btn').disabled = true;
             }
 
         } catch (error) {
@@ -2252,11 +2268,24 @@ class AvatarBuilder {
     }
 
     randomize() {
+        // Prevent overlapping randomize calls
+        if (this.isRandomizing) {
+            console.log('Randomize already in progress, skipping...');
+            return;
+        }
+        
+        this.isRandomizing = true;
+        
+        // Remove all existing wearables first to prevent stacking
+        this.removeHat();
+        this.removeShirt();
+        this.removeEyes();
+        
         // Randomly select a fur
         const randomFur = this.furOptions[Math.floor(Math.random() * this.furOptions.length)];
         
-        // Load the random fur
-        this.loadFurFile(randomFur).then(() => {
+        // Load the random fur (don't preserve wearables when randomizing)
+        this.loadFurFile(randomFur, false).then(() => {
             // After fur loads, randomly select a hat (or no hat)
             const shouldHaveHat = Math.random() > 0.3; // 70% chance of having a hat
             
@@ -2267,7 +2296,7 @@ class AvatarBuilder {
                     this.loadHat(randomHat);
                 }, 100);
             } else {
-                // Remove hat if one exists
+                // Remove hat if one exists (should already be removed, but double-check)
                 this.removeHat();
             }
 
@@ -2281,7 +2310,7 @@ class AvatarBuilder {
                     this.loadShirt(randomShirt);
                 }, 150);
             } else {
-                // Remove shirt if one exists
+                // Remove shirt if one exists (should already be removed, but double-check)
                 this.removeShirt();
             }
 
@@ -2290,7 +2319,11 @@ class AvatarBuilder {
             // Small delay to ensure fur is fully loaded
             setTimeout(() => {
                 this.loadEyes(randomEyes);
+                this.isRandomizing = false; // Reset flag after eyes load
             }, 200);
+        }).catch((error) => {
+            console.error('Error during randomize:', error);
+            this.isRandomizing = false; // Reset flag on error
         });
     }
 
