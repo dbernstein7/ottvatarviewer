@@ -1028,10 +1028,20 @@ header p {
     
     .logo-title {
         width: 100%;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
-
+    
+    .logo {
+        display: block !important;
+        visibility: visible !important;
+    }
+    
     header h1 {
         font-size: 1.5rem;
+        display: block !important;
+        visibility: visible !important;
     }
 
     header p {
@@ -1106,14 +1116,14 @@ header p {
     
     /* Mobile - Smaller search bar */
     .nft-search-input {
-        width: 140px;
-        padding: 0.4rem 0.5rem;
-        font-size: 0.75rem;
+        width: 100px;
+        padding: 0.35rem 0.45rem;
+        font-size: 0.7rem;
     }
     
     .nft-search-btn {
-        padding: 0.4rem 0.75rem;
-        font-size: 0.75rem;
+        padding: 0.35rem 0.65rem;
+        font-size: 0.7rem;
     }
     
     .header-controls {
@@ -1139,10 +1149,20 @@ header p {
     
     .logo-title {
         width: 100%;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
-
+    
+    .logo {
+        display: block !important;
+        visibility: visible !important;
+    }
+    
     header h1 {
         font-size: 1.25rem;
+        display: block !important;
+        visibility: visible !important;
     }
     
     .header-controls {
@@ -1153,14 +1173,14 @@ header p {
     
     /* Extra small mobile - Even smaller search bar */
     .nft-search-input {
-        width: 120px;
-        padding: 0.35rem 0.4rem;
-        font-size: 0.7rem;
+        width: 90px;
+        padding: 0.3rem 0.35rem;
+        font-size: 0.65rem;
     }
     
     .nft-search-btn {
-        padding: 0.35rem 0.6rem;
-        font-size: 0.7rem;
+        padding: 0.3rem 0.5rem;
+        font-size: 0.65rem;
     }
     
     .nft-search-btn {
