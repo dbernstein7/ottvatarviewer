@@ -179,14 +179,12 @@ class AvatarBuilder {
             antialias: true,
             powerPreference: "high-performance",
             stencil: false,
-            depth: true,
-            alpha: true  // Enable alpha channel for transparency
+            depth: true
         });
         this.renderer.setSize(container.clientWidth, container.clientHeight);
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
-        this.renderer.sortObjects = true; // Enable sorting for proper transparent object rendering
         container.appendChild(this.renderer.domElement);
 
         // Controls
@@ -1955,6 +1953,61 @@ class AvatarBuilder {
         return meshes;
     }
 
+    fixEyeMaterialRenderOrder(mesh) {
+        // Fix render order for eye materials: plastic should render before polarized
+        if (!mesh.material) return;
+        
+        // Handle both single materials and arrays
+        const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+        
+        materials.forEach((material, index) => {
+            if (!material) return;
+            
+            // Get material name (if available) or check material properties
+            const materialName = material.name?.toLowerCase() || '';
+            const meshName = mesh.name?.toLowerCase() || '';
+            
+            // Check if this is a polarized material (transparent, reflective, or named as polarized)
+            const isPolarized = material.transparent || 
+                               materialName.includes('polarized') || 
+                               materialName.includes('polar') ||
+                               meshName.includes('polarized') ||
+                               meshName.includes('polar') ||
+                               (material.metalness > 0.5 && material.roughness < 0.3); // High metalness + low roughness = reflective
+            
+            // Check if this is a plastic material
+            const isPlastic = materialName.includes('plastic') || 
+                             meshName.includes('plastic') ||
+                             (!material.transparent && material.roughness > 0.3 && material.metalness < 0.5);
+            
+            // Set render order: plastic should render in front of polarized
+            // Lower renderOrder = renders first (behind), higher = renders later (in front)
+            if (isPlastic) {
+                mesh.renderOrder = 1; // Render after polarized (in front)
+                material.depthWrite = true;
+                material.depthTest = true;
+            } else if (isPolarized) {
+                mesh.renderOrder = 0; // Render first (behind plastic)
+                // For transparent/reflective materials, ensure proper depth handling
+                if (material.transparent) {
+                    material.depthWrite = false; // Don't write to depth buffer for transparent
+                    material.depthTest = true; // But still test depth
+                } else {
+                    material.depthWrite = true;
+                    material.depthTest = true;
+                }
+            } else {
+                // Default: ensure proper depth settings
+                mesh.renderOrder = -1;
+                material.depthWrite = true;
+                material.depthTest = true;
+            }
+            
+            // Ensure material needs update if we changed properties
+            material.needsUpdate = true;
+        });
+    }
+
     removeHat() {
         if (this.currentHat) {
             // Remove hat from wherever it's parented (head bone, otter model, or scene)
@@ -2101,33 +2154,6 @@ class AvatarBuilder {
 
             this.removePlaceholdersFromScene(gltf.scene);
 
-            // For viper eyes specifically, force transparency on all materials in the scene
-            const isViperEyes = eyeName.toLowerCase().includes('viper');
-            
-            // Fix materials for ALL meshes in the scene (not just extracted ones)
-            // This ensures we catch all materials that need transparency
-            if (isViperEyes) {
-                gltf.scene.traverse((child) => {
-                    if (child.isMesh && child.material) {
-                        const materials = Array.isArray(child.material) ? child.material : [child.material];
-                        const fixedMaterials = materials.map(material => {
-                            const cloned = material.clone();
-                            cloned.transparent = true;
-                            cloned.depthWrite = false;
-                            cloned.depthTest = true;
-                            cloned.side = THREE.DoubleSide;
-                            // For viper eyes, if opacity is 1.0, make it slightly transparent
-                            if (cloned.opacity === 1.0 && !cloned.map) {
-                                cloned.opacity = 0.95;
-                            }
-                            return cloned;
-                        });
-                        child.material = Array.isArray(child.material) ? fixedMaterials : fixedMaterials[0];
-                        child.renderOrder = 100;
-                    }
-                });
-            }
-
             const meshes = this.extractWearableMeshes(gltf.scene);
             
             // CRITICAL FIX: Get WORLD transforms of meshes before extracting
@@ -2135,53 +2161,8 @@ class AvatarBuilder {
             gltf.scene.updateMatrixWorld(true);
             
             meshes.forEach(mesh => {
-                // Fix material transparency settings for proper rendering
-                if (mesh.material) {
-                    // Handle both single materials and material arrays
-                    const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-                    const clonedMaterials = materials.map(material => {
-                        // Clone material to avoid modifying the original
-                        const cloned = material.clone();
-                        
-                        // For viper eyes or transparent materials, apply transparency settings
-                        const needsTransparency = isViperEyes || 
-                                                 cloned.transparent || 
-                                                 cloned.opacity < 1.0 || 
-                                                 (cloned.map && cloned.map.alphaTest !== undefined);
-                        
-                        if (needsTransparency) {
-                            // For transparent materials, ensure proper settings
-                            cloned.transparent = true;
-                            cloned.depthWrite = false;  // Prevents z-fighting with transparent objects
-                            cloned.depthTest = true;   // Still test depth for proper ordering
-                            cloned.side = THREE.DoubleSide;  // Render both sides for transparency
-                            
-                            // For viper eyes, ensure opacity allows transparency
-                            if (isViperEyes && cloned.opacity === 1.0) {
-                                // Check if there's an alpha map or texture that indicates transparency
-                                if (cloned.map) {
-                                    // If there's a map, use it for transparency
-                                    cloned.opacity = 0.95; // Slightly transparent to allow underlying material to show
-                                } else {
-                                    // No map, might need to check color or other properties
-                                    cloned.opacity = 0.9;
-                                }
-                            }
-                            
-                            // Ensure renderOrder is set for proper sorting
-                            mesh.renderOrder = 100; // Render transparent objects after opaque ones
-                        }
-                        
-                        return cloned;
-                    });
-                    
-                    // Apply cloned materials back to mesh
-                    if (Array.isArray(mesh.material)) {
-                        mesh.material = clonedMaterials;
-                    } else {
-                        mesh.material = clonedMaterials[0];
-                    }
-                }
+                // Fix material render order for eyes (plastic should render before polarized)
+                this.fixEyeMaterialRenderOrder(mesh);
                 
                 // Get world transform before removing from GLB scene
                 const worldPos = new THREE.Vector3();
